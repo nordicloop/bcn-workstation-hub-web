@@ -247,21 +247,24 @@ export function PropertyDetailScreen() {
                                 Entire place
                             </h2>
                             <p className="text-[#717171] mt-0.5">
-                                Hosted by Nordicloop
+                                Hosted by {property.host}
                             </p>
                         </div>
                         <div className="w-14 h-14 bg-linear-to-br from-rose-400 to-pink-500 rounded-full flex items-center justify-center shrink-0">
                             <span className="text-white font-bold text-lg">
-                                N
+                                {property.host[0]}
                             </span>
                         </div>
                     </section>
 
                     {/* Description */}
                     <section className="py-8 border-b border-[#EBEBEB]">
-                        <p className="text-[#484848] leading-relaxed text-[15px]">
-                            {property.description}
-                        </p>
+                        <p
+                            className="text-[#484848] leading-relaxed text-[15px]"
+                            dangerouslySetInnerHTML={{
+                                __html: property.description,
+                            }}
+                        />
                     </section>
 
                     {/* Amenities */}
@@ -416,7 +419,10 @@ export function PropertyDetailScreen() {
                             {/* Date + guests picker */}
                             <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
                                 <div className="grid grid-cols-2 divide-x divide-[#DDDDDD]">
-                                    <div className="px-4 py-3">
+                                    <button
+                                        onClick={() => document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" })}
+                                        className="px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
+                                    >
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
                                             Check-in
                                         </p>
@@ -436,8 +442,11 @@ export function PropertyDetailScreen() {
                                                 </span>
                                             )}
                                         </p>
-                                    </div>
-                                    <div className="px-4 py-3">
+                                    </button>
+                                    <button
+                                        onClick={() => document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" })}
+                                        className="px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
+                                    >
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
                                             Check-out
                                         </p>
@@ -457,7 +466,7 @@ export function PropertyDetailScreen() {
                                                 </span>
                                             )}
                                         </p>
-                                    </div>
+                                    </button>
                                 </div>
                                 <div className="border-t border-[#DDDDDD] px-4 py-3">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">

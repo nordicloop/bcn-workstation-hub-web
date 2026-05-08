@@ -7,6 +7,7 @@ export type Property = {
         latitude: number;
         longitude: number;
     };
+    host: string
     amenities: NamedList[];
     images: NamedList[];
     rules: NamedList[];

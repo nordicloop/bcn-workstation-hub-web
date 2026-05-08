@@ -36,6 +36,11 @@ function extractAmenities(groups: any[]): NamedList[] {
     }));
 }
 
+function extractHost(sections: any[]): string {
+    const section = sections.find((s: any) => s.sectionId === "MEET_YOUR_HOST");
+    return section?.section?.cardData?.name ?? "";
+}
+
 function extractRules(sections: any[]): NamedList[] {
     const section = sections.find(
         (s: any) => s.sectionId === "POLICIES_DEFAULT"
@@ -95,6 +100,8 @@ const crawler = new PlaywrightCrawler({
         const amenityGroups: any[] =
             niobe.node?.pdpPresentation?.amenities?.seeAllAmenitiesGroups ?? [];
 
+        log.info(`mediaTour: ${mediaTour ? `${mediaTour.stops?.length} stops` : 'undefined'}`);
+
         const room: Property = {
             id:
                 niobe.presentation.stayProductDetailPage.sections.metadata
@@ -106,6 +113,7 @@ const crawler = new PlaywrightCrawler({
                 latitude: jsonLd.latitude ?? 0,
                 longitude: jsonLd.longitude ?? 0,
             },
+            host: extractHost(sections),
             amenities: extractAmenities(amenityGroups),
             images: extractImages(mediaTour, jsonLd.image),
             rules: extractRules(sections),

@@ -1,8 +1,6 @@
-import { Link, useLocation } from 'react-router'
+import { Link } from 'react-router'
 
 export function Header() {
-    const location = useLocation()
-    const isHome = location.pathname === '/'
 
     return (
         <header className="sticky top-0 z-50 bg-white border-b border-[#DDDDDD]">
@@ -20,27 +18,8 @@ export function Header() {
                     </span>
                 </Link>
 
-                {/* Center nav pill */}
-                <nav className="hidden md:flex items-center gap-1 bg-white border border-[#DDDDDD] rounded-full px-1 py-1 shadow-sm">
-                    <Link
-                        to="/"
-                        className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${isHome ? 'bg-[#222222] text-white' : 'text-[#222222] hover:bg-gray-100'}`}
-                    >
-                        Stays
-                    </Link>
-                    <button className="px-5 py-2 rounded-full text-sm font-medium text-[#717171] hover:bg-gray-100 transition-colors cursor-not-allowed">
-                        Experiences
-                    </button>
-                    <button className="px-5 py-2 rounded-full text-sm font-medium text-[#717171] hover:bg-gray-100 transition-colors cursor-not-allowed">
-                        Online
-                    </button>
-                </nav>
-
                 {/* User menu */}
                 <div className="flex items-center gap-3">
-                    <button className="hidden md:block text-sm font-semibold text-[#222222] hover:bg-gray-100 px-4 py-2 rounded-full transition-colors">
-                        Become a host
-                    </button>
                     <div className="flex items-center gap-2 border border-[#DDDDDD] rounded-full px-3 py-2 hover:shadow-md transition-shadow cursor-pointer">
                         <svg className="w-4 h-4 text-[#222222]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="3" y1="6" x2="21" y2="6" />
