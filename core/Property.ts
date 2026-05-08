@@ -11,7 +11,7 @@ export type Property = {
     amenities: NamedList[];
     images: NamedList[];
     rules: NamedList[];
-    availability: DateRange[];
+    reservedRange: DateRange[];
 };
 
 export type NamedList = {

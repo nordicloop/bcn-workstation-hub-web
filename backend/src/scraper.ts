@@ -1,11 +1,24 @@
 import { PlaywrightCrawler } from "crawlee";
-import { Property, NamedList } from "@bcn/core";
+import { Property, NamedList, DateRange } from "@bcn/core";
 import { createProperty } from "./properties/repository";
+import ical, { VEvent } from "node-ical";
 
 const airbnbListings = [
-    "https://www.airbnb.com/rooms/1663074583509006957",
-    "https://www.airbnb.com/rooms/851289997009741371",
-    "https://www.airbnb.com/rooms/1043429957458843360",
+    {
+        url: "https://www.airbnb.com/rooms/1663074583509006957",
+        icalUrl:
+            "https://www.airbnb.com/calendar/ical/1663074583509006957.ics?t=e0d5e80016bb4a19a125684168118f80",
+    },
+    {
+        url: "https://www.airbnb.com/rooms/851289997009741371",
+        icalUrl:
+            "https://www.airbnb.com/calendar/ical/851289997009741371.ics?t=22b96dbf48034b00887f81155e3a7d0b",
+    },
+    {
+        url: "https://www.airbnb.com/rooms/1043429957458843360",
+        icalUrl:
+            "https://www.airbnb.com/calendar/ical/1043429957458843360.ics?t=a181767e0f984f9d9fae37f196c4cbdc",
+    },
 ];
 
 function extractImages(mediaTour: any, featuredImages: string[]): NamedList[] {
@@ -41,6 +54,16 @@ function extractHost(sections: any[]): string {
     return section?.section?.cardData?.name ?? "";
 }
 
+async function fetchReservedDates(icalUrl: string): Promise<DateRange[]> {
+    const events = await ical.async.fromURL(icalUrl);
+    return Object.values(events)
+        .filter(
+            (e): e is VEvent =>
+                e.type === "VEVENT" && (e as VEvent).summary === "Reserved"
+        )
+        .map((e) => ({ from: e.start, to: e.end }));
+}
+
 function extractRules(sections: any[]): NamedList[] {
     const section = sections.find(
         (s: any) => s.sectionId === "POLICIES_DEFAULT"
@@ -58,7 +81,7 @@ function extractRules(sections: any[]): NamedList[] {
 }
 
 const crawler = new PlaywrightCrawler({
-    async requestHandler({ page, log }) {
+    async requestHandler({ page, log, request }) {
         await page.waitForLoadState("domcontentloaded");
 
         const dataEl = await page.$("#data-deferred-state-0");
@@ -100,7 +123,12 @@ const crawler = new PlaywrightCrawler({
         const amenityGroups: any[] =
             niobe.node?.pdpPresentation?.amenities?.seeAllAmenitiesGroups ?? [];
 
-        log.info(`mediaTour: ${mediaTour ? `${mediaTour.stops?.length} stops` : 'undefined'}`);
+        log.info(
+            `mediaTour: ${mediaTour ? `${mediaTour.stops?.length} stops` : "undefined"}`
+        );
+
+        const { icalUrl } = request.userData as { icalUrl?: string };
+        const reservedRange = icalUrl ? await fetchReservedDates(icalUrl) : [];
 
         const room: Property = {
             id:
@@ -117,7 +145,7 @@ const crawler = new PlaywrightCrawler({
             amenities: extractAmenities(amenityGroups),
             images: extractImages(mediaTour, jsonLd.image),
             rules: extractRules(sections),
-            availability: [],
+            reservedRange,
         };
 
         await createProperty(room);
@@ -125,4 +153,6 @@ const crawler = new PlaywrightCrawler({
     headless: true,
 });
 
-crawler.run(airbnbListings);
+crawler.run(
+    airbnbListings.map(({ url, icalUrl }) => ({ url, userData: { icalUrl } }))
+);
