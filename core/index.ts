@@ -1,1 +1,1 @@
-export { Property, NamedList, DateRange } from './Property'
+export type { Property, NamedList, DateRange } from './Property'
