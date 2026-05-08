@@ -10,7 +10,6 @@ export function PropertyCard({ property }: Props) {
         property.images.find((i) => i.title.toLowerCase() === "featured") ||
         property.images[0]
     ).items[0];
-    // const firstAvailability = property.availability[0];
 
     return (
         <Link to={`/properties/${property.id}`} className="group block">
@@ -79,20 +78,6 @@ export function PropertyCard({ property }: Props) {
                 <p className="text-sm text-[#717171] truncate">
                     {property.address}
                 </p>
-
-                {/* {firstAvailability && (
-                    <p className="text-sm text-[#717171]">
-                        {new Date(firstAvailability.from).toLocaleDateString(
-                            "en-US",
-                            { month: "short", day: "numeric" }
-                        )}
-                        {" – "}
-                        {new Date(firstAvailability.to).toLocaleDateString(
-                            "en-US",
-                            { month: "short", day: "numeric" }
-                        )}
-                    </p>
-                )} */}
 
                 {property.amenities.length > 0 && (
                     <p className="text-sm text-[#717171] truncate">

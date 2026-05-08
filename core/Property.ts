@@ -20,6 +20,6 @@ export type NamedList = {
 };
 
 export type DateRange = {
-    from: Date;
-    to: Date;
+    from: string;
+    to: string;
 };

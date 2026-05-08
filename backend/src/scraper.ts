@@ -61,7 +61,7 @@ async function fetchReservedDates(icalUrl: string): Promise<DateRange[]> {
             (e): e is VEvent =>
                 e.type === "VEVENT" && (e as VEvent).summary === "Reserved"
         )
-        .map((e) => ({ from: e.start, to: e.end }));
+        .map((e) => ({ from: e.start.toISOString(), to: e.end.toISOString() }));
 }
 
 function extractRules(sections: any[]): NamedList[] {
