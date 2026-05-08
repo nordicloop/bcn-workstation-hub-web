@@ -179,6 +179,29 @@ export function PropertyDetailScreen() {
               )
             : null;
 
+    function openReservationMail() {
+        if (!fromDate || !toDate) {
+            document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" });
+            return;
+        }
+        const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+        const guestParts = [
+            `${adults} adult${adults !== 1 ? "s" : ""}`,
+            children > 0 ? `${children} child${children !== 1 ? "ren" : ""}` : null,
+            infants > 0 ? `${infants} infant${infants !== 1 ? "s" : ""}` : null,
+        ].filter(Boolean).join(", ");
+        const subject = encodeURIComponent(`Booking Request – ${property!.name}`);
+        const body = encodeURIComponent(
+            `Hi,\n\nI would like to book the following stay:\n\n` +
+            `Property: ${property!.name} (ID: ${property!.id})\n` +
+            `Check-in: ${fmt(fromDate)}\n` +
+            `Check-out: ${fmt(toDate)}\n` +
+            `Guests: ${guestParts}\n\n` +
+            `Please let me know the next steps.\n\nThank you!`
+        );
+        window.location.href = `mailto:cyn.killner@gmail.com,imdavidfernandez@gmail.com?subject=${subject}&body=${body}`;
+    }
+
     return (
         <main className="max-w-7xl mx-auto px-6 lg:px-10 py-8 pb-20">
             {/* Breadcrumb */}
@@ -355,6 +378,7 @@ export function PropertyDetailScreen() {
                             toDate={toDate}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
+                            reservedRanges={property.reservedRange}
                         />
 
                         <div className="mt-8">
@@ -374,37 +398,6 @@ export function PropertyDetailScreen() {
                             />
                         </div>
 
-                        {/* Available periods */}
-                        {property.availability.length > 0 && (
-                            <div className="mt-6 p-5 bg-[#F7F7F7] rounded-2xl">
-                                <h3 className="font-semibold text-[#222222] mb-3 text-sm">
-                                    Available periods
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {property.availability.map((period, i) => (
-                                        <div
-                                            key={i}
-                                            className="text-sm text-[#484848] bg-white border border-[#DDDDDD] rounded-full px-4 py-1.5"
-                                        >
-                                            {new Date(
-                                                period.from
-                                            ).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                            })}
-                                            {" – "}
-                                            {new Date(
-                                                period.to
-                                            ).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </section>
                 </div>
 
@@ -483,18 +476,10 @@ export function PropertyDetailScreen() {
                             </div>
 
                             <button
-                                onClick={() => {
-                                    const section =
-                                        document.getElementById("availability");
-                                    section?.scrollIntoView({
-                                        behavior: "smooth",
-                                    });
-                                }}
+                                onClick={openReservationMail}
                                 className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors text-[15px] tracking-wide"
                             >
-                                {fromDate && toDate
-                                    ? "Reserve"
-                                    : "Check availability"}
+                                Reserve
                             </button>
 
                             <p className="text-center text-sm text-[#717171] mt-3">
@@ -518,12 +503,12 @@ export function PropertyDetailScreen() {
 
             {/* Mobile sticky footer */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#DDDDDD] px-6 py-4">
-                <a
-                    href="#availability"
-                    className="block w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl text-center transition-colors"
+                <button
+                    onClick={openReservationMail}
+                    className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors"
                 >
-                    Check availability
-                </a>
+                    Reserve
+                </button>
             </div>
         </main>
     );

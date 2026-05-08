@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import type { DateRange } from '@bcn/core'
 
 type DateRangePickerProps = {
     fromDate: Date | null
     toDate: Date | null
     onFromDateChange: (date: Date | null) => void
     onToDateChange: (date: Date | null) => void
+    reservedRanges?: DateRange[]
 }
 
 const MONTH_NAMES = [
@@ -32,22 +34,41 @@ function getMonthGrid(year: number, month: number): (Date | null)[] {
     return result
 }
 
-function getCellClass(date: Date, today: Date, fromDate: Date | null, toDate: Date | null, hover: Date | null): string {
-    const isPast = date < today
-    if (isPast) return 'text-gray-300 cursor-not-allowed line-through'
+function toDay(d: DateRange['from']): Date {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return startOfDay(new Date(d as any))
+}
+
+function isDateBlocked(date: Date, ranges: DateRange[]): boolean {
+    return ranges.some(r => date >= toDay(r.from) && date <= toDay(r.to))
+}
+
+function rangeContainsBlocked(start: Date, end: Date, ranges: DateRange[]): boolean {
+    return ranges.some(r => toDay(r.from) < end && toDay(r.to) > start)
+}
+
+function getCellClass(
+    date: Date,
+    today: Date,
+    fromDate: Date | null,
+    toDate: Date | null,
+    cappedHover: Date | null,
+    blocked: boolean,
+): string {
+    if (blocked || date < today) return 'text-gray-300 cursor-not-allowed line-through'
 
     const isStart = fromDate !== null && isSameDay(date, fromDate)
     const isEnd = toDate !== null && isSameDay(date, toDate)
     if (isStart || isEnd) return 'bg-[#222222] text-white rounded-full font-bold cursor-pointer z-10 relative'
 
-    const effectiveEnd = toDate ?? (fromDate && hover && hover > fromDate ? hover : null)
+    const effectiveEnd = toDate ?? (fromDate && cappedHover && cappedHover > fromDate ? cappedHover : null)
     const inRange = fromDate !== null && effectiveEnd !== null && date > fromDate && date < effectiveEnd
     if (inRange) return 'bg-rose-50 text-[#222222] cursor-pointer rounded-none'
 
     return 'text-[#222222] hover:bg-gray-100 rounded-full cursor-pointer'
 }
 
-export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange }: DateRangePickerProps) {
+export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, reservedRanges = [] }: DateRangePickerProps) {
     const today = startOfDay(new Date())
     const [viewYear, setViewYear] = useState(today.getFullYear())
     const [viewMonth, setViewMonth] = useState(today.getMonth())
@@ -57,6 +78,19 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
     const nextYear = viewMonth === 11 ? viewYear + 1 : viewYear
 
     const canGoPrev = viewYear > today.getFullYear() || viewMonth > today.getMonth()
+
+    // Cap hover preview so it doesn't visually cross a blocked range
+    let cappedHover = hover
+    if (fromDate && hover && hover > fromDate) {
+        for (const r of reservedRanges) {
+            const rFrom = toDay(r.from)
+            if (rFrom > fromDate && rFrom <= cappedHover!) {
+                const dayBefore = new Date(rFrom.getTime())
+                dayBefore.setDate(dayBefore.getDate() - 1)
+                cappedHover = dayBefore
+            }
+        }
+    }
 
     function goToPrev() {
         if (!canGoPrev) return
@@ -70,7 +104,7 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
     }
 
     function handleClick(date: Date) {
-        if (date < today) return
+        if (date < today || isDateBlocked(date, reservedRanges)) return
         if (!fromDate || (fromDate && toDate)) {
             onFromDateChange(date)
             onToDateChange(null)
@@ -80,7 +114,13 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
             } else if (date < fromDate) {
                 onFromDateChange(date)
             } else {
-                onToDateChange(date)
+                if (rangeContainsBlocked(fromDate, date, reservedRanges)) {
+                    // Range would span a blocked period — start fresh from this date
+                    onFromDateChange(date)
+                    onToDateChange(null)
+                } else {
+                    onToDateChange(date)
+                }
             }
         }
     }
@@ -97,13 +137,14 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                     ))}
                     {days.map((date, i) => {
                         if (!date) return <div key={`e-${i}`} className="h-10" />
+                        const blocked = isDateBlocked(date, reservedRanges)
                         return (
                             <button
                                 key={date.toISOString()}
                                 onClick={() => handleClick(date)}
-                                onMouseEnter={() => setHover(date)}
+                                onMouseEnter={() => { if (!blocked && date >= today) setHover(date) }}
                                 onMouseLeave={() => setHover(null)}
-                                className={`h-10 w-full text-sm flex items-center justify-center transition-colors ${getCellClass(date, today, fromDate, toDate, hover)}`}
+                                className={`h-10 w-full text-sm flex items-center justify-center transition-colors ${getCellClass(date, today, fromDate, toDate, cappedHover, blocked)}`}
                             >
                                 {date.getDate()}
                             </button>
