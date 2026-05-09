@@ -6,6 +6,8 @@ type DateRangePickerProps = {
     toDate: Date | null
     onFromDateChange: (date: Date | null) => void
     onToDateChange: (date: Date | null) => void
+    onDateChange?: (from: Date | null, to: Date | null) => void
+    validationError?: string | null
     reservedRanges?: DateRange[]
     infoPosition?: 'top' | 'bottom'
     onClose?: () => void
@@ -71,7 +73,7 @@ function getCellClass(
     return 'text-[#222222] hover:bg-gray-100 rounded-full cursor-pointer'
 }
 
-export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, reservedRanges = [], infoPosition = 'bottom', onClose, showCloseButton = false }: DateRangePickerProps) {
+export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, onDateChange, validationError, reservedRanges = [], infoPosition = 'bottom', onClose, showCloseButton = false }: DateRangePickerProps) {
     const today = startOfDay(new Date())
     const [viewYear, setViewYear] = useState(today.getFullYear())
     const [viewMonth, setViewMonth] = useState(today.getMonth())
@@ -161,23 +163,39 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
 
     function handleClick(date: Date) {
         if (date < today || isDateBlocked(date, reservedRanges)) return
+        let newFromDate = fromDate
+        let newToDate = toDate
+        
         if (!fromDate || (fromDate && toDate)) {
+            newFromDate = date
+            newToDate = null
             onFromDateChange(date)
             onToDateChange(null)
         } else {
             if (isSameDay(date, fromDate)) {
+                newFromDate = null
                 onFromDateChange(null)
             } else if (date < fromDate) {
+                newFromDate = date
+                newToDate = null
                 onFromDateChange(date)
             } else {
                 if (rangeContainsBlocked(fromDate, date, reservedRanges)) {
                     // Range would span a blocked period — start fresh from this date
+                    newFromDate = date
+                    newToDate = null
                     onFromDateChange(date)
                     onToDateChange(null)
                 } else {
+                    newToDate = date
                     onToDateChange(date)
                 }
             }
+        }
+        
+        // Call validation callback if provided
+        if (onDateChange) {
+            onDateChange(newFromDate, newToDate)
         }
     }
 
@@ -213,6 +231,17 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
 
     return (
         <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden">
+            {/* Validation error message */}
+            {validationError && (
+                <div className="bg-red-50 border-b border-red-200 px-6 py-3">
+                    <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <p className="text-sm text-red-700 font-medium">{validationError}</p>
+                    </div>
+                </div>
+            )}
             {/* Selected range summary + clear - top position */}
             {infoPosition === 'top' && (fromDate || toDate) && (
                 <div className="border-b border-[#EBEBEB] px-6 py-4 flex items-center gap-6 bg-[#FAFAFA]">
@@ -260,7 +289,7 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                         )}
                     </div>
                     <button
-                        onClick={() => { onFromDateChange(null); onToDateChange(null) }}
+                        onClick={() => { onFromDateChange(null); onToDateChange(null); if (onDateChange) onDateChange(null, null); }}
                         className="ml-auto text-xs font-semibold text-[#717171] underline hover:text-[#222222] transition-colors"
                     >
                         Clear dates
@@ -387,7 +416,7 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                         )}
                     </div>
                     <button
-                        onClick={() => { onFromDateChange(null); onToDateChange(null) }}
+                        onClick={() => { onFromDateChange(null); onToDateChange(null); if (onDateChange) onDateChange(null, null); }}
                         className="ml-auto text-xs font-semibold text-[#717171] underline hover:text-[#222222] transition-colors"
                     >
                         Clear dates

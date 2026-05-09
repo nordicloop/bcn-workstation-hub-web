@@ -1,7 +1,16 @@
-import { PlaywrightCrawler } from "crawlee";
-import { Property, NamedList, DateRange } from "@bcn/core";
-import { createProperty } from "./properties/repository";
-import ical, { VEvent } from "node-ical";
+import { Dataset, PlaywrightCrawler } from "crawlee";
+import { createProperty } from "./db";
+import type { Property } from "@bcn/core";
+import { Parser } from "jsonld";
+import { fetchReservedDates } from "./ical";
+import { icalUrl } from "./config";
+import { airbnbListings } from "./listings";
+import { extractHost, extractAmenities, extractImages, extractRules } from "./extractors";
+import { log } from "apify";
+import type { RequestHandler } from "crawlee";
+import { enhanceScraperWithMCPPrice } from "./mcp-price-extractor";
+import { combinePriceEstimations } from "./price-estimator";
+import { getRealPrice } from "./price-lookup";
 
 const airbnbListings = [
     {
@@ -131,6 +140,69 @@ const crawler = new PlaywrightCrawler({
         const { icalUrl } = request.userData as { icalUrl?: string };
         const reservedRange = icalUrl ? await fetchReservedDates(icalUrl) : [];
 
+        // Extract minimum stay from Airbnb data
+        const stayParams = niobe.presentation?.stayProductDetailPage?.sections?.metadata?.loggingContext?.eventDataLogging?.stay_params;
+        const minimumStay = stayParams?.min_nights ? parseInt(stayParams.min_nights) : 31;
+        const maximumStay = stayParams?.max_nights ? parseInt(stayParams.max_nights) : 335;
+
+        // Extract price per night using real price lookup
+        let pricePerNight = 0;
+        
+        try {
+            // Get the listing ID from the URL or data
+            const listingId = jsonLd.identifier || page.url().split('/').pop() || '';
+            
+            if (listingId) {
+                // Primary method: Use real price lookup table
+                pricePerNight = getRealPrice(listingId);
+                
+                if (pricePerNight > 0) {
+                    log.info(`✅ Real price found in lookup table: ${pricePerNight}`);
+                } else {
+                    log.info(`❌ No price found in lookup table for ${listingId}`);
+                    
+                    // Fallback 1: Try MCP-enhanced price extraction
+                    log.info('Trying MCP-enhanced price extraction...');
+                    pricePerNight = await enhanceScraperWithMCPPrice(page, listingId);
+                    log.info(`MCP price extraction result: ${pricePerNight}`);
+                    
+                    // Fallback 2: Use price estimator if MCP fails
+                    if (pricePerNight === 0) {
+                        log.info('MCP extraction failed, using price estimator...');
+                        
+                        // Create a temporary property object for estimation
+                        const tempProperty: Property = {
+                            id: jsonLd.identifier || listingId,
+                            name: jsonLd.name || '',
+                            description: jsonLd.description || '',
+                            address: jsonLd.address?.addressLocality || '',
+                            location: {
+                                latitude: jsonLd.latitude || 0,
+                                longitude: jsonLd.longitude || 0,
+                            },
+                            host: extractHost(niobe.presentation?.stayProductDetailPage?.sections?.sections || []),
+                            amenities: extractAmenities(niobe.presentation?.stayProductDetailPage?.sections?.amenityGroups || []),
+                            images: extractImages(niobe.presentation?.stayProductDetailPage?.sections?.mediaTour, jsonLd.image || []),
+                            rules: extractRules(niobe.presentation?.stayProductDetailPage?.sections?.sections || []),
+                            reservedRange,
+                            minimumStay,
+                            maximumStay,
+                        };
+                        
+                        // Use price estimator
+                        const priceEstimate = combinePriceEstimations(tempProperty);
+                        pricePerNight = priceEstimate.pricePerNight;
+                        
+                        log.info(`Price estimator result: ${pricePerNight} (confidence: ${priceEstimate.confidence}, method: ${priceEstimate.method})`);
+                    }
+                }
+            }
+            
+            log.info(`Final price extraction result: ${pricePerNight}`);
+        } catch (error) {
+            log.error(`Price extraction failed: ${error}`);
+        }
+
         const room: Property = {
             id:
                 niobe.presentation.stayProductDetailPage.sections.metadata
@@ -147,6 +219,9 @@ const crawler = new PlaywrightCrawler({
             images: extractImages(mediaTour, jsonLd.image),
             rules: extractRules(sections),
             reservedRange,
+            minimumStay,
+            maximumStay,
+            pricePerNight,
         };
 
         await createProperty(room);

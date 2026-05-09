@@ -12,6 +12,9 @@ export type Property = {
     images: NamedList[];
     rules: NamedList[];
     reservedRange: DateRange[];
+    minimumStay?: number;
+    maximumStay?: number;
+    pricePerNight?: number;
 };
 
 export type NamedList = {

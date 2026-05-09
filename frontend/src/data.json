@@ -10,6 +10,9 @@
         "longitude": 2.35008
       },
       "host": "Cynthia",
+      "pricePerNight": 85,
+      "minimumStay": 31,
+      "maximumStay": 335,
       "amenities": [
         {
           "title": "Bathroom",
@@ -220,13 +223,16 @@
     {
       "id": "1663074583509006957",
       "name": "Modern 2BR, fast wifi, A/C, walk to beach & train",
-      "description": "Work & Relax: Modern 2BR Near BCN & Costa Brava<br /><br />Newly renovated 2BR apartment in peaceful Premià de Mar. Perfect for remote work with high-speed Wi-Fi and AC. Includes a private patio for quiet evenings. The perfect Mediterranean home base.<br /><br />Escape the crowds and enjoy large beaches and the modern Marina (gym, dining, shops).<br /> <br />Effortless travel: a 10-min walk to the train connects you to central Barcelona in 30 min or north to the stunning Costa Brava.<br /><br /><b>The space</b><br />Experience the perfect \"workation\" in this bright, fully renovated 2-bedroom home. Designed for modern living, the apartment features a sleek open kitchen and a comfortable living area equipped with full air conditioning and fast internet. After work, unwind on your private patio—a secluded spot perfect for morning coffee or a glass of wine in total tranquility.<br /><br />The Location<br />Located in the charming town of Premià de Mar, you are far from the city noise but perfectly connected to the action.<br />• The Beach & Marina: A 10-minute stroll leads you to expansive, uncrowded beaches and a modern Marina. Here, you’ll find everything you need: a high-end gym, grocery stores, and a variety of seaside restaurants.<br />• Easy Transit: The train station is just 10 minutes away on foot. The scenic coastal train takes you directly to the heart of Barcelona in just 30 minutes.<br /><br />Explore the Region<br />This is the ideal gateway for explorers. Use the excellent rail links to head south for a day in the city or head north to discover the famous hidden coves and crystal-clear waters of the Maresme and Costa Brava. Enjoy the authentic Catalan lifestyle with all the modern amenities you require.<br /><br /><b>Registration details</b><br />Spain – National registration number<br />ESFCNT00000809400065159300000000000000000000000000009<br /><br />Catalonia – Regional registration number<br />Exempt",
+      "description": "Work & Relax: Modern 2BR Near BCN & Costa Brava<br /><br />Newly renovated 2BR apartment in peaceful Premià de Mar. Perfect for remote work with high-speed Wi-Fi and AC. Includes a private patio for quiet evenings. The perfect Mediterranean home base.<br /><br />Escape the crowds and enjoy large beaches and the modern Marina (gym, dining, shops).<br /> <br />Effortless travel: a 10-min walk to the train connects you to central Barcelona in 30 min or north to the stunning Costa Brava.<br /><br /><b>The space</b><br />Experience the perfect \"workation\" in this bright, fully renovated 2-bedroom home. Designed for modern living, the apartment features a sleek open kitchen and a comfortable living area equipped with full air conditioning and fast internet. After work, unwind on your private patio—a secluded spot perfect for morning coffee or a glass of wine in total tranquility.<br /><br />The Location<br />Located in the charming town of Premià de Mar, you are far from the city noise but perfectly connected to the action.<br />• The Beach & Marina: A 10-minute stroll leads you to expansive, uncrowded beaches and a modern Marina. Here, you'll find everything you need: a high-end gym, grocery stores, and a variety of seaside restaurants.<br />• Easy Transit: The train station is just 10 minutes away on foot. The scenic coastal train takes you directly to the heart of Barcelona in just 30 minutes.<br /><br />Explore the Region<br />This is the ideal gateway for explorers. Use the excellent rail links to head south for a day in the city or head north to discover the famous hidden coves and crystal-clear waters of the Maresme and Costa Brava. Enjoy the authentic Catalan lifestyle with all the modern amenities you require.<br /><br /><b>Registration details</b><br />Spain – National registration number<br />ESFCNT00000809400065159300000000000000000000000000009<br /><br />Catalonia – Regional registration number<br />Exempt",
       "address": "Premià de Mar",
       "location": {
         "latitude": 41.4946,
         "longitude": 2.35084
       },
       "host": "Cynthia",
+      "pricePerNight": 95,
+      "minimumStay": 31,
+      "maximumStay": 335,
       "amenities": [
         {
           "title": "Bathroom",
@@ -448,6 +454,9 @@
         "longitude": 2.35159
       },
       "host": "Cynthia",
+      "pricePerNight": 75,
+      "minimumStay": 31,
+      "maximumStay": 335,
       "amenities": [
         {
           "title": "Scenic views",
