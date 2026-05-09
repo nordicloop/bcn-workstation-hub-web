@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { DateRange } from '@bcn/core'
 
 type DateRangePickerProps = {
@@ -7,6 +7,9 @@ type DateRangePickerProps = {
     onFromDateChange: (date: Date | null) => void
     onToDateChange: (date: Date | null) => void
     reservedRanges?: DateRange[]
+    infoPosition?: 'top' | 'bottom'
+    onClose?: () => void
+    showCloseButton?: boolean
 }
 
 const MONTH_NAMES = [
@@ -68,11 +71,19 @@ function getCellClass(
     return 'text-[#222222] hover:bg-gray-100 rounded-full cursor-pointer'
 }
 
-export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, reservedRanges = [] }: DateRangePickerProps) {
+export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, reservedRanges = [], infoPosition = 'bottom', onClose, showCloseButton = false }: DateRangePickerProps) {
     const today = startOfDay(new Date())
     const [viewYear, setViewYear] = useState(today.getFullYear())
     const [viewMonth, setViewMonth] = useState(today.getMonth())
     const [hover, setHover] = useState<Date | null>(null)
+
+    // Update view to show selected dates when they change
+    useEffect(() => {
+        if (fromDate) {
+            setViewYear(fromDate.getFullYear())
+            setViewMonth(fromDate.getMonth())
+        }
+    }, [fromDate])
 
     const nextMonth = viewMonth === 11 ? 0 : viewMonth + 1
     const nextYear = viewMonth === 11 ? viewYear + 1 : viewYear
@@ -102,6 +113,51 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
         if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0) }
         else setViewMonth(m => m + 1)
     }
+
+    function findNextAvailableDate(): Date | null {
+        let currentDate = new Date(today)
+        currentDate.setDate(currentDate.getDate() + 1) // Start from tomorrow
+        
+        // Check up to 2 years ahead
+        const maxDate = new Date(today)
+        maxDate.setFullYear(maxDate.getFullYear() + 2)
+        
+        while (currentDate <= maxDate) {
+            if (!isDateBlocked(currentDate, reservedRanges)) {
+                return currentDate
+            }
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
+        
+        return null
+    }
+
+    function monthHasAvailableDates(year: number, month: number): boolean {
+        const firstDay = new Date(year, month, 1)
+        const lastDay = new Date(year, month + 1, 0)
+        
+        let currentDate = new Date(firstDay)
+        while (currentDate <= lastDay) {
+            if (!isDateBlocked(currentDate, reservedRanges) && currentDate >= today) {
+                return true
+            }
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
+        
+        return false
+    }
+
+    function goToNextAvailableMonth() {
+        const nextAvailable = findNextAvailableDate()
+        if (nextAvailable) {
+            setViewYear(nextAvailable.getFullYear())
+            setViewMonth(nextAvailable.getMonth())
+        }
+    }
+
+    const currentMonthHasAvailability = monthHasAvailableDates(viewYear, viewMonth)
+    const nextMonthHasAvailability = monthHasAvailableDates(nextYear, nextMonth)
+    const nextAvailableDate = findNextAvailableDate()
 
     function handleClick(date: Date) {
         if (date < today || isDateBlocked(date, reservedRanges)) return
@@ -157,6 +213,71 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
 
     return (
         <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden">
+            {/* Selected range summary + clear - top position */}
+            {infoPosition === 'top' && (fromDate || toDate) && (
+                <div className="border-b border-[#EBEBEB] px-6 py-4 flex items-center gap-6 bg-[#FAFAFA]">
+                    <div className="flex items-center gap-2">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">Check-in</p>
+                            <p className="text-sm font-semibold text-[#222222] mt-0.5">
+                                {fromDate
+                                    ? fromDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                    : '—'}
+                            </p>
+                        </div>
+                        {fromDate && (
+                            <button
+                                onClick={() => onFromDateChange(null)}
+                                className="p-1 hover:bg-[#E5E5E5] rounded-full transition-colors"
+                                title="Clear check-in date"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                    <div className="w-px h-8 bg-[#DDDDDD]" />
+                    <div className="flex items-center gap-2">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">Check-out</p>
+                            <p className="text-sm font-semibold text-[#222222] mt-0.5">
+                                {toDate
+                                    ? toDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                    : '—'}
+                            </p>
+                        </div>
+                        {toDate && (
+                            <button
+                                onClick={() => onToDateChange(null)}
+                                className="p-1 hover:bg-[#E5E5E5] rounded-full transition-colors"
+                                title="Clear check-out date"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => { onFromDateChange(null); onToDateChange(null) }}
+                        className="ml-auto text-xs font-semibold text-[#717171] underline hover:text-[#222222] transition-colors"
+                    >
+                        Clear dates
+                    </button>
+                    {showCloseButton && onClose && (
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-[#F7F7F7] rounded-full transition-colors"
+                            title="Close calendar"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            )}
             {/* Navigation header */}
             <div className="flex items-center px-6 pt-5 pb-4">
                 <button
@@ -195,25 +316,75 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                 {renderMonth(nextYear, nextMonth)}
             </div>
 
-            {/* Selected range summary + clear */}
-            {(fromDate || toDate) && (
+            {/* Next available date info */}
+            {!currentMonthHasAvailability && !nextMonthHasAvailability && nextAvailableDate && (
+                <div className="px-6 pb-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-blue-900">
+                                    Next available: {nextAvailableDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                                <p className="text-xs text-blue-700 mt-1">
+                                    No availability in current months
+                                </p>
+                            </div>
+                            <button
+                                onClick={goToNextAvailableMonth}
+                                className="px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Go to available
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Selected range summary + clear - bottom position */}
+            {infoPosition === 'bottom' && (fromDate || toDate) && (
                 <div className="border-t border-[#EBEBEB] px-6 py-4 flex items-center gap-6 bg-[#FAFAFA]">
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">Check-in</p>
-                        <p className="text-sm font-semibold text-[#222222] mt-0.5">
-                            {fromDate
-                                ? fromDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                                : '—'}
-                        </p>
+                    <div className="flex items-center gap-2">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">Check-in</p>
+                            <p className="text-sm font-semibold text-[#222222] mt-0.5">
+                                {fromDate
+                                    ? fromDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                    : '—'}
+                            </p>
+                        </div>
+                        {fromDate && (
+                            <button
+                                onClick={() => onFromDateChange(null)}
+                                className="p-1 hover:bg-[#E5E5E5] rounded-full transition-colors"
+                                title="Clear check-in date"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                     <div className="w-px h-8 bg-[#DDDDDD]" />
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">Check-out</p>
-                        <p className="text-sm font-semibold text-[#222222] mt-0.5">
-                            {toDate
-                                ? toDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                                : '—'}
-                        </p>
+                    <div className="flex items-center gap-2">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">Check-out</p>
+                            <p className="text-sm font-semibold text-[#222222] mt-0.5">
+                                {toDate
+                                    ? toDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                    : '—'}
+                            </p>
+                        </div>
+                        {toDate && (
+                            <button
+                                onClick={() => onToDateChange(null)}
+                                className="p-1 hover:bg-[#E5E5E5] rounded-full transition-colors"
+                                title="Clear check-out date"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                     <button
                         onClick={() => { onFromDateChange(null); onToDateChange(null) }}

@@ -3,8 +3,25 @@ import { useParams, Link } from "react-router";
 import type { Property, NamedList } from "@bcn/core";
 import { getProperty } from "../api-client";
 import { DateRangePicker } from "../components/DateRangePicker";
-import { GuestCounter } from "../components/GuestCounter";
 import { ImageGalleryModal } from "../components/ImageGalleryModal";
+import { PropertyMap } from "../components/PropertyMap";
+
+function removeRegistrationDetails(description: string): string {
+    // Remove Registration details section and related content
+    const cleanedDescription = description
+        .replace(/<b>Registration details<\/b>.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/Short rent register number:.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/Spain – National registration number.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/Catalonia – Regional registration number.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/ESFCNT\d+.*?(?=<br>|<br\/>|$)/gis, '')
+        // Clean up multiple consecutive breaks but preserve paragraph spacing
+        .replace(/(<br\s*\/?>\s*){3,}/gi, '<br/><br/>') // Convert 3+ breaks to 2 breaks
+        .replace(/^(<br\s*\/?>\s*)+/, '') // Remove leading breaks
+        .replace(/(<br\s*\/?>\s*)+$/, '') // Remove trailing breaks
+        .replace(/<br\/><br\/>/g, '<br/><br/>'); // Ensure consistent double breaks for paragraphs
+    
+    return cleanedDescription.trim();
+}
 
 function AmenitySection({ section }: { section: NamedList }) {
     return (
@@ -114,6 +131,9 @@ export function PropertyDetailScreen() {
     const [adults, setAdults] = useState(1);
     const [children, setChildren] = useState(0);
     const [infants, setInfants] = useState(0);
+    const [pets, setPets] = useState(0);
+    const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+    const [showCalendarPopup, setShowCalendarPopup] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -122,6 +142,32 @@ export function PropertyDetailScreen() {
             .catch((err: Error) => setError(err.message))
             .finally(() => setLoading(false));
     }, [id]);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            
+            // Check if click is outside all popup containers
+            const isOutsideGuestDropdown = !target.closest('.guest-dropdown-container');
+            const isOutsideCalendarPopup = !target.closest('.calendar-popup-container');
+            
+            if (showGuestDropdown && isOutsideGuestDropdown) {
+                setShowGuestDropdown(false);
+            }
+            if (showCalendarPopup && isOutsideCalendarPopup) {
+                setShowCalendarPopup(false);
+            }
+        };
+
+        if (showGuestDropdown || showCalendarPopup) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showGuestDropdown, showCalendarPopup]);
 
     if (loading) {
         return (
@@ -285,7 +331,7 @@ export function PropertyDetailScreen() {
                         <p
                             className="text-[#484848] leading-relaxed text-[15px]"
                             dangerouslySetInnerHTML={{
-                                __html: property.description,
+                                __html: removeRegistrationDetails(property.description),
                             }}
                         />
                     </section>
@@ -362,6 +408,24 @@ export function PropertyDetailScreen() {
                         </section>
                     )}
 
+                    {/* Location section */}
+                    <section className="py-8 border-b border-[#EBEBEB]">
+                        <h2 className="font-display text-2xl font-semibold text-[#222222] mb-6">
+                            Location
+                        </h2>
+                        <div className="space-y-4">
+                            <p className="text-[#484848] text-sm">
+                                {property.address}
+                            </p>
+                            <PropertyMap
+                                latitude={property.location.latitude}
+                                longitude={property.location.longitude}
+                                name={property.name}
+                                address={property.address}
+                            />
+                        </div>
+                    </section>
+
                     {/* Availability section */}
                     <section className="py-8" id="availability">
                         <h2 className="font-display text-2xl font-semibold text-[#222222] mb-1">
@@ -379,25 +443,11 @@ export function PropertyDetailScreen() {
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
                             reservedRanges={property.reservedRange}
+                            infoPosition="bottom"
                         />
 
-                        <div className="mt-8">
-                            <h3 className="font-semibold text-[#222222] mb-1">
-                                Guests
-                            </h3>
-                            <p className="text-sm text-[#717171] mb-4">
-                                This place allows up to 16 guests
-                            </p>
-                            <GuestCounter
-                                adults={adults}
-                                children={children}
-                                infants={infants}
-                                onAdultsChange={setAdults}
-                                onChildrenChange={setChildren}
-                                onInfantsChange={setInfants}
-                            />
-                        </div>
-
+                        
+                        
                     </section>
                 </div>
 
@@ -409,70 +459,238 @@ export function PropertyDetailScreen() {
                                 Book your stay
                             </p>
 
-                            {/* Date + guests picker */}
-                            <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
-                                <div className="grid grid-cols-2 divide-x divide-[#DDDDDD]">
+                            {/* Guest selector dropdown */}
+                            <div className="relative guest-dropdown-container">
+                                <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
                                     <button
-                                        onClick={() => document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" })}
-                                        className="px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
+                                        onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                                        className="w-full px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors flex items-center justify-between"
                                     >
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
-                                            Check-in
-                                        </p>
-                                        <p className="text-sm font-semibold text-[#222222] mt-1">
-                                            {fromDate ? (
-                                                fromDate.toLocaleDateString(
-                                                    "en-US",
-                                                    {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    }
-                                                )
-                                            ) : (
-                                                <span className="text-[#AAAAAA] font-normal">
-                                                    Add date
-                                                </span>
-                                            )}
-                                        </p>
-                                    </button>
-                                    <button
-                                        onClick={() => document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" })}
-                                        className="px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
-                                    >
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
-                                            Check-out
-                                        </p>
-                                        <p className="text-sm font-semibold text-[#222222] mt-1">
-                                            {toDate ? (
-                                                toDate.toLocaleDateString(
-                                                    "en-US",
-                                                    {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    }
-                                                )
-                                            ) : (
-                                                <span className="text-[#AAAAAA] font-normal">
-                                                    Add date
-                                                </span>
-                                            )}
-                                        </p>
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
+                                                Guests
+                                            </p>
+                                            <p className="text-sm font-semibold text-[#222222] mt-1">
+                                                {totalGuests} guest
+                                                {totalGuests !== 1 ? "s" : ""}
+                                                {infants > 0
+                                                    ? `, ${infants} infant${infants !== 1 ? "s" : ""}`
+                                                    : ""}
+                                                {pets > 0
+                                                    ? `, ${pets} pet${pets !== 1 ? "s" : ""}`
+                                                    : ""}
+                                            </p>
+                                        </div>
+                                        <svg
+                                            className={`w-5 h-5 text-[#717171] transition-transform ${showGuestDropdown ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </button>
                                 </div>
-                                <div className="border-t border-[#DDDDDD] px-4 py-3">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
-                                        Guests
-                                    </p>
-                                    <p className="text-sm font-semibold text-[#222222] mt-1">
-                                        {totalGuests} guest
-                                        {totalGuests !== 1 ? "s" : ""}
-                                        {infants > 0
-                                            ? `, ${infants} infant${infants !== 1 ? "s" : ""}`
-                                            : ""}
-                                    </p>
+                                
+                                {showGuestDropdown && (
+                                    <div className="absolute top-full left-0 right-0 bg-white border border-[#DDDDDD] rounded-2xl shadow-lg z-50 mt-1">
+                                        <div className="p-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <h4 className="font-semibold text-[#222222]">Guests</h4>
+                                                    <p className="text-sm text-[#717171]">This place allows up to 16 guests</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setShowGuestDropdown(false)}
+                                                    className="p-1 hover:bg-[#F7F7F7] rounded-full"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Adults</span>
+                                                        <p className="text-xs text-[#717171]">Age 13+</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setAdults(Math.max(1, adults - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={adults === 1}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {adults}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setAdults(adults + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Children</span>
+                                                        <p className="text-xs text-[#717171]">Ages 2-12</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setChildren(Math.max(0, children - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={children === 0}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {children}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setChildren(children + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Infants</span>
+                                                        <p className="text-xs text-[#717171]">Under 2</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setInfants(Math.max(0, infants - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={infants === 0}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {infants}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setInfants(infants + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Pets</span>
+                                                        <p className="text-xs text-[#717171]">Bringing pets?</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setPets(Math.max(0, pets - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={pets === 0}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {pets}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setPets(pets + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            
+                            {/* Date picker popup */}
+                            <div className="relative calendar-popup-container">
+                                <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
+                                    <button
+                                        onClick={() => setShowCalendarPopup(!showCalendarPopup)}
+                                        className="w-full px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
+                                                    Dates
+                                                </p>
+                                                <p className="text-sm font-semibold text-[#222222] mt-1">
+                                                    {fromDate && toDate ? (
+                                                        `${fromDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${toDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                                                    ) : (
+                                                        <span className="text-[#AAAAAA] font-normal">
+                                                            Select dates
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <svg
+                                                className={`w-5 h-5 text-[#717171] transition-transform ${showCalendarPopup ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </button>
                                 </div>
+                                
+                                {showCalendarPopup && (
+                                    <div className="absolute top-full right-0 bg-white rounded-2xl shadow-xl z-[9999] mt-1" style={{ minWidth: '600px', maxWidth: '700px' }}>
+                                        <div>
+                                            <DateRangePicker
+                                                fromDate={fromDate}
+                                                toDate={toDate}
+                                                onFromDateChange={(date) => {
+                                                    setFromDate(date);
+                                                    // Keep popup open when selecting dates
+                                                    if (date && toDate) {
+                                                        // Both dates selected, could optionally close after a delay
+                                                    }
+                                                }}
+                                                onToDateChange={(date) => {
+                                                    setToDate(date);
+                                                    // Close popup when both dates are selected
+                                                    if (date && fromDate) {
+                                                        setShowCalendarPopup(false);
+                                                    }
+                                                }}
+                                                reservedRanges={property.reservedRange}
+                                                infoPosition="top"
+                                                onClose={() => setShowCalendarPopup(false)}
+                                                showCloseButton={true}
+                                            />
+                                        </div>
+                                                                                </div>
+                                )}
                             </div>
 
                             <button
@@ -486,19 +704,10 @@ export function PropertyDetailScreen() {
                                 You won't be charged yet
                             </p>
 
-                            {nightCount && (
-                                <div className="mt-5 pt-5 border-t border-[#EBEBEB] space-y-2">
-                                    <div className="flex justify-between text-sm text-[#484848]">
-                                        <span>
-                                            {nightCount} night
-                                            {nightCount !== 1 ? "s" : ""}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                                                    </div>
                     </div>
-                </div>
+
+                                </div>
             </div>
 
             {/* Mobile sticky footer */}

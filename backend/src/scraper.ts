@@ -59,7 +59,8 @@ async function fetchReservedDates(icalUrl: string): Promise<DateRange[]> {
     return Object.values(events)
         .filter(
             (e): e is VEvent =>
-                e.type === "VEVENT" && (e as VEvent).summary === "Reserved"
+                e.type === "VEVENT" && 
+                ((e as VEvent).summary === "Reserved" || (e as VEvent).summary === "Airbnb (Not available)")
         )
         .map((e) => ({ from: e.start.toISOString(), to: e.end.toISOString() }));
 }

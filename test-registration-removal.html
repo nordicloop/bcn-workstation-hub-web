@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Details Removal Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .original {
+            background-color: #fff5f5;
+        }
+        .cleaned {
+            background-color: #f0fff4;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .verification {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .fail {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Registration Details Removal Test</h1>
+    
+    <div class="test-section original">
+        <h2>Original Description (with registration details)</h2>
+        <div id="original-content"></div>
+    </div>
+    
+    <div class="test-section cleaned">
+        <h2>Cleaned Description (registration details removed)</h2>
+        <div id="cleaned-content"></div>
+    </div>
+    
+    <div class="verification">
+        <h2>Verification Results</h2>
+        <div id="verification-results"></div>
+    </div>
+
+    <script>
+        // Copy of the removeRegistrationDetails function from PropertyDetailScreen.tsx
+        function removeRegistrationDetails(description) {
+            // Remove Registration details section and related content
+            const cleanedDescription = description
+                .replace(/<b>Registration details<\/b>.*?(?=<br>|<br\/>|$)/gis, '')
+                .replace(/Short rent register number:.*?(?=<br>|<br\/>|$)/gis, '')
+                .replace(/Spain – National registration number.*?(?=<br>|<br\/>|$)/gis, '')
+                .replace(/Catalonia – Regional registration number.*?(?=<br>|<br\/>|$)/gis, '')
+                .replace(/ESFCNT\d+.*?(?=<br>|<br\/>|$)/gis, '')
+                // Clean up multiple consecutive breaks
+                .replace(/(<br\s*\/?>\s*){2,}/gi, '<br/>')
+                .replace(/^(<br\s*\/?>\s*)+/, '')
+                .replace(/(<br\s*\/?>\s*)+$/, '');
+            
+            return cleanedDescription.trim();
+        }
+
+        // Sample property description with registration details
+        const sampleDescription = `Fully renovated, 1 bedroom, 1 bathroom with an open kitchen and huge private rooftop terrace in the charming coastal town of Premià de Mar.<br /><br />The apartment has a bright and modern living space, complete with stylish furnishings and all the amenities you need to stay productive (fast internet provided) and comfortable. Spacious private terrace where you can soak up the sun, enjoy the fresh sea breeze, and take in stunning views of the sea and surrounding hills.<br /><br /><b>Other things to note</b><br />This is a temporary rent apartment, minimum 31 days  and maximum 11 months. You will be required to sign electronically a standard rental agreement to comply with local laws and regulations and share your ID / Passport within 48h once the booking is pre-approved. For residents in Spain you will be required to provide a proof of need for temporary rental. You might be asked to provide a source of income and LinkedIn profile.<br />Electricity is covered up to 450 kWh per month, which should meet your needs comfortably. Usage beyond this allocation will incur additional charges in accordance with the market price.<br />Short rent register number: ESFCNT00000809400065161600000000000000000000000000005<br /><br /><b>Registration details</b><br />Spain – National registration number<br />ESFCNT00000809400065161600000000000000000000000000005<br /><br />Catalonia – Regional registration number<br />Exempt`;
+
+        // Display original content
+        document.getElementById('original-content').innerHTML = sampleDescription;
+
+        // Apply cleaning function and display
+        const cleanedDescription = removeRegistrationDetails(sampleDescription);
+        document.getElementById('cleaned-content').innerHTML = cleanedDescription;
+
+        // Verification
+        const hasRegistrationDetails = cleanedDescription.includes("Registration details") || 
+                                     cleanedDescription.includes("National registration number") || 
+                                     cleanedDescription.includes("Regional registration number") ||
+                                     cleanedDescription.includes("ESFCNT");
+
+        const stillHasPropertyInfo = cleanedDescription.includes("Premià de Mar") && 
+                                    cleanedDescription.includes("private rooftop terrace");
+
+        let verificationHTML = '';
+        
+        verificationHTML += `<p class="${hasRegistrationDetails ? 'fail' : 'success'}">
+            ✓ Registration details removed: ${!hasRegistrationDetails ? 'SUCCESS' : 'FAILED'}
+        </p>`;
+        
+        verificationHTML += `<p class="${stillHasPropertyInfo ? 'success' : 'fail'}">
+            ✓ Property information preserved: ${stillHasPropertyInfo ? 'SUCCESS' : 'FAILED'}
+        </p>`;
+        
+        verificationHTML += `<p><strong>Overall Test Result: ${!hasRegistrationDetails && stillHasPropertyInfo ? '✅ PASS' : '❌ FAIL'}</strong></p>`;
+
+        document.getElementById('verification-results').innerHTML = verificationHTML;
+    </script>
+</body>
+</html>
