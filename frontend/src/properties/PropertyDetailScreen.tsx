@@ -292,33 +292,69 @@ export function PropertyDetailScreen() {
         setShowReservationSummary(true);
     }
 
-    function confirmReservation() {
-        const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-        const guestParts = [
-            `${adults} adult${adults !== 1 ? "s" : ""}`,
-            children > 0 ? `${children} child${children !== 1 ? "ren" : ""}` : null,
-            infants > 0 ? `${infants} infant${infants !== 1 ? "s" : ""}` : null,
-        ].filter(Boolean).join(", ");
+    async function confirmReservation() {
+        if (!fromDate || !toDate || !property) {
+            alert("Missing required information");
+            return;
+        }
+
+        // Calculate nights and total
+        const nights = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+        const baseAmount = nights * (property.pricePerNight || 0);
         
-        // Calculate nights and total for the email
-        const nights = fromDate && toDate 
-            ? Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24))
-            : 0;
-        const baseAmount = nights * (property?.pricePerNight || 0);
+        // Get guest email
+        const guestEmail = prompt("Please enter your email address to receive booking confirmation:");
         
-        const subject = encodeURIComponent(`Booking Request – ${property!.name}`);
-        const body = encodeURIComponent(
-            `Hi,\n\nI would like to book the following stay:\n\n` +
-            `Property: ${property!.name} (ID: ${property!.id})\n` +
-            `Check-in: ${fmt(fromDate)}\n` +
-            `Check-out: ${fmt(toDate)}\n` +
-            `Nights: ${nights}\n` +
-            `Guests: ${guestParts}\n` +
-            `Total Amount: $${baseAmount} USD\n\n` +
-            `Please let me know the next steps.\n\nThank you!`
-        );
-        window.location.href = `mailto:cyn.killner@gmail.com,imdavidfernandez@gmail.com?subject=${subject}&body=${body}`;
-        setShowReservationSummary(false);
+        if (!guestEmail) {
+            alert("Email address is required to proceed with booking");
+            return;
+        }
+
+        try {
+            // Show loading state
+            const confirmButton = document.querySelector('[data-testid="confirm-button"]') as HTMLButtonElement;
+            if (confirmButton) {
+                confirmButton.textContent = "Sending...";
+                confirmButton.disabled = true;
+            }
+
+            // Call Mailgun API endpoint
+            const response = await fetch('https://us-central1-bcn-workation-hub.cloudfunctions.net/sendReservationEmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    property: property,
+                    fromDate: fromDate,
+                    toDate: toDate,
+                    adults: adults,
+                    children: children,
+                    infants: infants,
+                    guestEmail: guestEmail,
+                    totalAmount: baseAmount
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                alert("Booking request sent successfully! Please check your email for next steps.");
+                setShowReservationSummary(false);
+            } else {
+                throw new Error(result.error || "Failed to send booking request");
+            }
+        } catch (error) {
+            console.error("Error sending booking request:", error);
+            alert("Failed to send booking request. Please try again or contact us directly.");
+        } finally {
+            // Reset button state
+            const confirmButton = document.querySelector('[data-testid="confirm-button"]') as HTMLButtonElement;
+            if (confirmButton) {
+                confirmButton.textContent = "Confirm Booking";
+                confirmButton.disabled = false;
+            }
+        }
     }
 
     function cancelReservation() {

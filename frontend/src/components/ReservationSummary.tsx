@@ -219,6 +219,7 @@ export function ReservationSummary({
           <div className="space-y-3">
             <button
               onClick={onConfirm}
+              data-testid="confirm-button"
               className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-3 rounded-2xl transition-colors text-[15px] tracking-wide"
             >
               Confirm Reservation
