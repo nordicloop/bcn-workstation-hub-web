@@ -150,16 +150,20 @@ export function ReservationSummary({
           {/* Info Sections */}
           <div className="mb-6 space-y-4">
             {/* Dates Section */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <h4 className="font-semibold text-[#222222] mb-3 text-sm">Dates</h4>
-              <div className="space-y-3 text-sm">
+            <div className="bg-gray-50 rounded-xl p-3">
+              <h4 className="font-semibold text-[#222222] mb-2 text-xs">Dates</h4>
+              <div className="space-y-2 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#717171]">Check-in</span>
-                  <span className="text-[#222222] font-medium">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#717171]">Check-out</span>
-                  <span className="text-[#222222] font-medium">{toDate ? fmt(toDate) : 'Not selected'}</span>
+                  <div>
+                    <span className="text-[#717171]">Check-in</span>
+                    <br />
+                    <span className="text-[#717171]">Check-out</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[#222222] font-medium">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
+                    <br />
+                    <span className="text-[#222222] font-medium">{toDate ? fmt(toDate) : 'Not selected'}</span>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#717171]">Nights</span>
@@ -169,11 +173,11 @@ export function ReservationSummary({
             </div>
             
             {/* Guests Section */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <h4 className="font-semibold text-[#222222] mb-3 text-sm">Guests</h4>
+            <div className="bg-gray-50 rounded-xl p-3">
+              <h4 className="font-semibold text-[#222222] mb-2 text-xs">Guests</h4>
               <div className="flex justify-between items-center">
-                <span className="text-[#717171]">Total Guests</span>
-                <span className="text-[#222222] font-medium">{guestParts}</span>
+                <span className="text-[#717171] text-xs">Total Guests</span>
+                <span className="text-[#222222] font-medium text-xs">{guestParts}</span>
               </div>
             </div>
           </div>
