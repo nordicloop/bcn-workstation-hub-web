@@ -26,6 +26,7 @@ export function ReservationSummary({
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [showPromoCode, setShowPromoCode] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
   const [emailError, setEmailError] = useState("");
 
@@ -154,9 +155,8 @@ export function ReservationSummary({
               <h4 className="font-semibold text-[#222222] mb-2 text-xs">Dates</h4>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between items-center">
-                  <div>
+                  <div className="flex gap-4">
                     <span className="text-[#717171]">Check-in</span>
-                    <br />
                     <span className="text-[#717171]">Check-out</span>
                   </div>
                   <div className="text-right">
@@ -213,42 +213,57 @@ export function ReservationSummary({
 
           {/* Promo Code */}
           <div className="mb-6">
-            <h4 className="font-semibold text-[#222222] mb-3">Promo Code</h4>
             {discountAmount > 0 ? (
-              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-                <div>
-                  <span className="text-sm text-green-800 font-medium">{promoCode.toUpperCase()}</span>
-                  <span className="text-xs text-green-600 ml-2">Applied</span>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-green-800 font-medium">{promoCode.toUpperCase()}</span>
+                    <span className="text-xs text-green-600 ml-2">Applied</span>
+                  </div>
+                  <button
+                    onClick={removePromoCode}
+                    className="text-green-600 hover:text-green-800 text-xs"
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  onClick={removePromoCode}
-                  className="text-green-600 hover:text-green-800 text-sm"
-                >
-                  Remove
-                </button>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder="Enter promo code"
-                  className="flex-1 px-3 py-2 border border-[#DDDDDD] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
-                  disabled={isApplyingPromo}
-                />
-                <button
-                  onClick={applyPromoCode}
-                  disabled={isApplyingPromo || !promoCode.trim()}
-                  className="px-4 py-2 bg-[#FF385C] text-white rounded-lg text-sm font-medium hover:bg-[#E31C5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isApplyingPromo ? 'Applying...' : 'Apply'}
-                </button>
+              <div>
+                {!showPromoCode ? (
+                  <button
+                    onClick={() => setShowPromoCode(true)}
+                    className="text-[#FF385C] hover:text-[#E31C5F] text-xs underline transition-colors"
+                  >
+                    Do you have a promo code?
+                  </button>
+                ) : (
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder="Enter promo code"
+                        className="flex-1 px-2 py-1 border border-[#DDDDDD] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
+                        disabled={isApplyingPromo}
+                      />
+                      <button
+                        onClick={applyPromoCode}
+                        disabled={isApplyingPromo || !promoCode.trim()}
+                        className="px-3 py-1 bg-[#FF385C] text-white rounded-lg text-xs font-medium hover:bg-[#E31C5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isApplyingPromo ? 'Applying...' : 'Apply'}
+                      </button>
+                    </div>
+                    {promoError && (
+                      <p className="text-red-500 text-xs mt-1">{promoError}</p>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-            
-            {promoError && (
-              <p className="text-red-500 text-xs mt-1">{promoError}</p>
             )}
           </div>
 
@@ -273,8 +288,8 @@ export function ReservationSummary({
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-3">
+          {/* Action Button */}
+          <div>
             <button
               onClick={handleConfirm}
               data-testid="confirm-button"
@@ -282,12 +297,6 @@ export function ReservationSummary({
               disabled={!guestEmail.trim()}
             >
               Confirm Reservation
-            </button>
-            <button
-              onClick={onCancel}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-[#222222] font-medium py-3 rounded-2xl transition-colors text-sm"
-            >
-              Cancel
             </button>
           </div>
 
