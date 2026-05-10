@@ -155,12 +155,16 @@ export function ReservationSummary({
                 <h4 className="font-semibold text-[#222222] mb-2">Dates</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-[#717171] text-sm">Check-in</span>
-                    <span className="text-[#222222] text-sm">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#717171] text-sm">Check-out</span>
-                    <span className="text-[#222222] text-sm">{toDate ? fmt(toDate) : 'Not selected'}</span>
+                    <div>
+                      <span className="text-[#717171] text-sm">Check-in</span>
+                      <br />
+                      <span className="text-[#717171] text-sm">Check-out</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[#222222] text-sm">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
+                      <br />
+                      <span className="text-[#222222] text-sm">{toDate ? fmt(toDate) : 'Not selected'}</span>
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#717171] text-sm">Nights</span>
