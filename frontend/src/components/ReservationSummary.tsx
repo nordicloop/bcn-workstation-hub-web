@@ -147,61 +147,61 @@ export function ReservationSummary({
             <p className="text-sm text-[#717171]">{property.address}</p>
           </div>
 
-          {/* Compact Info Grid */}
-          <div className="mb-6">
-            <div className="grid grid-cols-2 gap-6 text-sm">
-              {/* Dates Section */}
-              <div>
-                <h4 className="font-semibold text-[#222222] mb-3">Dates</h4>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-[#717171] text-sm">Check-in</span>
-                    <span className="text-[#222222] text-sm">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-[#717171] text-sm">Check-out</span>
-                    <span className="text-[#222222] text-sm">{toDate ? fmt(toDate) : 'Not selected'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-[#717171] text-sm">Nights</span>
-                    <span className="text-[#222222] text-sm">{nights}</span>
-                  </div>
+          {/* Info Sections */}
+          <div className="mb-6 space-y-4">
+            {/* Dates Section */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <h4 className="font-semibold text-[#222222] mb-3 text-sm">Dates</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#717171]">Check-in</span>
+                  <span className="text-[#222222] font-medium">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#717171]">Check-out</span>
+                  <span className="text-[#222222] font-medium">{toDate ? fmt(toDate) : 'Not selected'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#717171]">Nights</span>
+                  <span className="text-[#222222] font-medium">{nights}</span>
                 </div>
               </div>
-              
-              {/* Guests Section */}
-              <div>
-                <h4 className="font-semibold text-[#222222] mb-3">Guests</h4>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-[#717171] text-sm">Total Guests</span>
-                  <span className="text-[#222222] text-sm">{guestParts}</span>
-                </div>
+            </div>
+            
+            {/* Guests Section */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <h4 className="font-semibold text-[#222222] mb-3 text-sm">Guests</h4>
+              <div className="flex justify-between items-center">
+                <span className="text-[#717171]">Total Guests</span>
+                <span className="text-[#222222] font-medium">{guestParts}</span>
               </div>
             </div>
           </div>
 
           {/* Pricing */}
           <div className="mb-6">
-            <h4 className="font-semibold text-[#222222] mb-3">Price Details</h4>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center py-1">
-                <span className="text-[#717171] text-sm">
-                  {formatCurrency(basePricePerNight)} × {nights} nights
-                </span>
-                <span className="text-[#222222] text-sm">{formatCurrency(baseAmount)}</span>
-              </div>
-              
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-green-600 items-center py-1">
-                  <span className="text-sm">Promo code discount</span>
-                  <span className="text-sm">-{formatCurrency(discountAmount)}</span>
+            <div className="bg-gray-50 rounded-xl p-4">
+              <h4 className="font-semibold text-[#222222] mb-3 text-sm">Price Details</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#717171]">
+                    {formatCurrency(basePricePerNight)} × {nights} nights
+                  </span>
+                  <span className="text-[#222222] font-medium">{formatCurrency(baseAmount)}</span>
                 </div>
-              )}
-              
-              <div className="border-t pt-3 mt-3">
-                <div className="flex justify-between font-semibold text-base items-center py-1">
-                  <span>Total</span>
-                  <span className="text-[#222222]">{formatCurrency(totalAmount)}</span>
+                
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600 items-center">
+                    <span>Promo code discount</span>
+                    <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+                  </div>
+                )}
+                
+                <div className="border-t pt-3 mt-3">
+                  <div className="flex justify-between font-semibold text-base items-center">
+                    <span>Total</span>
+                    <span className="text-[#222222] text-lg">{formatCurrency(totalAmount)}</span>
+                  </div>
                 </div>
               </div>
             </div>
