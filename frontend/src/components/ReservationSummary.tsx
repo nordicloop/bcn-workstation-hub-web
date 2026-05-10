@@ -226,20 +226,18 @@ export function ReservationSummary({
           {/* Promo Code */}
           {discountAmount > 0 && (
             <div className="mb-6">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-green-800 font-medium">{promoCode.toUpperCase()}</span>
-                    <span className="text-xs text-green-600 ml-2">Applied</span>
-                  </div>
-                  <button
-                    onClick={removePromoCode}
-                    className="text-green-600 hover:text-green-800 text-xs"
-                  >
-                    Remove
-                  </button>
+              <h4 className="font-semibold text-[#222222] mb-3">Promo Code</h4>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm text-green-800 font-medium">{promoCode.toUpperCase()}</span>
+                  <span className="text-sm text-green-600 ml-2">Applied</span>
                 </div>
+                <button
+                  onClick={removePromoCode}
+                  className="text-green-600 hover:text-green-800 text-sm"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           )}
@@ -247,29 +245,27 @@ export function ReservationSummary({
           {/* Promo Code Input (shown when clicked) */}
           {showPromoCode && discountAmount === 0 && (
             <div className="mb-6">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Enter promo code"
-                    className="flex-1 px-2 py-1 border border-[#DDDDDD] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
-                    disabled={isApplyingPromo}
-                  />
-                  <button
-                    onClick={applyPromoCode}
-                    disabled={isApplyingPromo || !promoCode.trim()}
-                    className="px-3 py-1 bg-[#FF385C] text-white rounded-lg text-xs font-medium hover:bg-[#E31C5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {isApplyingPromo ? 'Applying...' : 'Apply'}
-                  </button>
-                </div>
-                {promoError && (
-                  <p className="text-red-500 text-xs mt-1">{promoError}</p>
-                )}
+              <h4 className="font-semibold text-[#222222] mb-3">Promo Code</h4>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  placeholder="Enter promo code"
+                  className="flex-1 px-4 py-3 border border-[#DDDDDD] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
+                  disabled={isApplyingPromo}
+                />
+                <button
+                  onClick={applyPromoCode}
+                  disabled={isApplyingPromo || !promoCode.trim()}
+                  className="px-4 py-3 bg-[#FF385C] text-white rounded-lg text-sm font-medium hover:bg-[#E31C5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isApplyingPromo ? 'Applying...' : 'Apply'}
+                </button>
               </div>
+              {promoError && (
+                <p className="text-red-500 text-xs mt-2">{promoError}</p>
+              )}
             </div>
           )}
 
