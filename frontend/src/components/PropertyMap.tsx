@@ -3,18 +3,17 @@ import { useEffect, useRef, useState } from 'react';
 interface PropertyMapProps {
     latitude: number;
     longitude: number;
-    name: string;
     address: string;
 }
 
 declare global {
     interface Window {
-        initGoogleMap: () => void;
-        googleMapsError: () => void;
+        initGoogleMap?: () => void;
+        googleMapsError?: () => void;
     }
 }
 
-export function PropertyMap({ latitude, longitude, name, address }: PropertyMapProps) {
+export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<google.maps.Map | null>(null);
     const [loadError, setLoadError] = useState<string>('');

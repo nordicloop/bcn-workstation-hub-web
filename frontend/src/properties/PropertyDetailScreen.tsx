@@ -657,7 +657,6 @@ export function PropertyDetailScreen() {
                             <PropertyMap
                                 latitude={property.location.latitude}
                                 longitude={property.location.longitude}
-                                name={property.name}
                                 address={property.address}
                             />
                             <div className="bg-gray-50 rounded-xl p-4 mt-6">
