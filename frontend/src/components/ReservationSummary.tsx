@@ -148,21 +148,21 @@ export function ReservationSummary({
           </div>
 
           {/* Compact Info Grid */}
-          <div className="mb-5">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="mb-6">
+            <div className="grid grid-cols-2 gap-6 text-sm">
               {/* Dates Section */}
               <div>
-                <h4 className="font-semibold text-[#222222] mb-2">Dates</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-1">
+                <h4 className="font-semibold text-[#222222] mb-3">Dates</h4>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-2">
                     <span className="text-[#717171] text-sm">Check-in</span>
                     <span className="text-[#222222] text-sm">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1">
+                  <div className="flex justify-between items-center py-2">
                     <span className="text-[#717171] text-sm">Check-out</span>
                     <span className="text-[#222222] text-sm">{toDate ? fmt(toDate) : 'Not selected'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1">
+                  <div className="flex justify-between items-center py-2">
                     <span className="text-[#717171] text-sm">Nights</span>
                     <span className="text-[#222222] text-sm">{nights}</span>
                   </div>
@@ -171,8 +171,8 @@ export function ReservationSummary({
               
               {/* Guests Section */}
               <div>
-                <h4 className="font-semibold text-[#222222] mb-2">Guests</h4>
-                <div className="flex justify-between">
+                <h4 className="font-semibold text-[#222222] mb-3">Guests</h4>
+                <div className="flex justify-between items-center py-2">
                   <span className="text-[#717171] text-sm">Total Guests</span>
                   <span className="text-[#222222] text-sm">{guestParts}</span>
                 </div>
@@ -181,10 +181,10 @@ export function ReservationSummary({
           </div>
 
           {/* Pricing */}
-          <div className="mb-5">
+          <div className="mb-6">
             <h4 className="font-semibold text-[#222222] mb-3">Price Details</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center py-1">
                 <span className="text-[#717171] text-sm">
                   {formatCurrency(basePricePerNight)} × {nights} nights
                 </span>
@@ -192,14 +192,14 @@ export function ReservationSummary({
               </div>
               
               {discountAmount > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-green-600 items-center py-1">
                   <span className="text-sm">Promo code discount</span>
                   <span className="text-sm">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between font-semibold text-base">
+              <div className="border-t pt-3 mt-3">
+                <div className="flex justify-between font-semibold text-base items-center py-1">
                   <span>Total</span>
                   <span className="text-[#222222]">{formatCurrency(totalAmount)}</span>
                 </div>
@@ -208,7 +208,7 @@ export function ReservationSummary({
           </div>
 
           {/* Promo Code */}
-          <div className="mb-5">
+          <div className="mb-6">
             <h4 className="font-semibold text-[#222222] mb-3">Promo Code</h4>
             {discountAmount > 0 ? (
               <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
@@ -249,7 +249,7 @@ export function ReservationSummary({
           </div>
 
           {/* Email Input */}
-          <div className="mb-5">
+          <div className="mb-6">
             <h4 className="font-semibold text-[#222222] mb-3">Your Email Address</h4>
             <input
               type="email"
@@ -262,9 +262,9 @@ export function ReservationSummary({
               className="w-full px-4 py-3 border border-[#DDDDDD] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
             />
             {emailError && (
-              <p className="text-red-500 text-xs mt-1">{emailError}</p>
+              <p className="text-red-500 text-xs mt-2">{emailError}</p>
             )}
-            <p className="text-xs text-[#717171] mt-2">
+            <p className="text-xs text-[#717171] mt-3">
               We'll send your booking confirmation to this email address.
             </p>
           </div>
