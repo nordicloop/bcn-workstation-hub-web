@@ -203,7 +203,19 @@ export function ReservationSummary({
                 
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between font-semibold text-base items-center">
-                    <span>Total</span>
+                    <div>
+                      <span>Total</span>
+                      {discountAmount === 0 && !showPromoCode && (
+                        <div className="mt-1">
+                          <button
+                            onClick={() => setShowPromoCode(true)}
+                            className="text-[#FF385C] hover:text-[#E31C5F] text-xs underline transition-colors"
+                          >
+                            Do you have a promo code?
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <span className="text-[#222222] text-lg">{formatCurrency(totalAmount)}</span>
                   </div>
                 </div>
@@ -212,8 +224,8 @@ export function ReservationSummary({
           </div>
 
           {/* Promo Code */}
-          <div className="mb-6">
-            {discountAmount > 0 ? (
+          {discountAmount > 0 && (
+            <div className="mb-6">
               <div className="bg-gray-50 rounded-xl p-3">
                 <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
                 <div className="flex items-center justify-between">
@@ -229,43 +241,37 @@ export function ReservationSummary({
                   </button>
                 </div>
               </div>
-            ) : (
-              <div>
-                {!showPromoCode ? (
+            </div>
+          )}
+
+          {/* Promo Code Input (shown when clicked) */}
+          {showPromoCode && discountAmount === 0 && (
+            <div className="mb-6">
+              <div className="bg-gray-50 rounded-xl p-3">
+                <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    placeholder="Enter promo code"
+                    className="flex-1 px-2 py-1 border border-[#DDDDDD] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
+                    disabled={isApplyingPromo}
+                  />
                   <button
-                    onClick={() => setShowPromoCode(true)}
-                    className="text-[#FF385C] hover:text-[#E31C5F] text-xs underline transition-colors"
+                    onClick={applyPromoCode}
+                    disabled={isApplyingPromo || !promoCode.trim()}
+                    className="px-3 py-1 bg-[#FF385C] text-white rounded-lg text-xs font-medium hover:bg-[#E31C5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Do you have a promo code?
+                    {isApplyingPromo ? 'Applying...' : 'Apply'}
                   </button>
-                ) : (
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <h4 className="font-semibold text-[#222222] mb-2 text-xs">Promo Code</h4>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value)}
-                        placeholder="Enter promo code"
-                        className="flex-1 px-2 py-1 border border-[#DDDDDD] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
-                        disabled={isApplyingPromo}
-                      />
-                      <button
-                        onClick={applyPromoCode}
-                        disabled={isApplyingPromo || !promoCode.trim()}
-                        className="px-3 py-1 bg-[#FF385C] text-white rounded-lg text-xs font-medium hover:bg-[#E31C5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {isApplyingPromo ? 'Applying...' : 'Apply'}
-                      </button>
-                    </div>
-                    {promoError && (
-                      <p className="text-red-500 text-xs mt-1">{promoError}</p>
-                    )}
-                  </div>
+                </div>
+                {promoError && (
+                  <p className="text-red-500 text-xs mt-1">{promoError}</p>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Email Input */}
           <div className="mb-6">
@@ -284,7 +290,7 @@ export function ReservationSummary({
               <p className="text-red-500 text-xs mt-2">{emailError}</p>
             )}
             <p className="text-xs text-[#717171] mt-3">
-              We'll send your booking confirmation to this email address.
+              Upon confirmation, you will receive an email containing your booking details and payment instructions for the 10% deposit required to secure your reservation.
             </p>
           </div>
 
@@ -299,11 +305,6 @@ export function ReservationSummary({
               Confirm Reservation
             </button>
           </div>
-
-          {/* Note */}
-          <p className="text-xs text-[#717171] text-center mt-4">
-            Upon confirmation, you will receive an email containing your booking details and payment instructions for the 10% deposit required to secure your reservation.
-          </p>
         </div>
       </div>
     </div>
