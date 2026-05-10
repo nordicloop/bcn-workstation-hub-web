@@ -19,6 +19,8 @@ import { DateRangePicker } from "../components/DateRangePicker";
 import { ImageGalleryModal } from "../components/ImageGalleryModal";
 import { PropertyMap } from "../components/PropertyMap";
 import { ReservationSummary } from "../components/ReservationSummary";
+import { ReservationStatus } from "../components/ReservationStatus";
+import { ReservationCookies } from "../utils/ReservationCookies";
 
 function removeRegistrationDetails(description: string): string {
     // Remove Registration details section and related content
@@ -331,6 +333,14 @@ export function PropertyDetailScreen() {
             const result = await response.json();
 
             if (response.ok && result.success) {
+                // Store reservation in cookies to prevent double booking
+                ReservationCookies.addReservation({
+                    propertyId: property.id,
+                    fromDate: fromDate.toISOString().split('T')[0],
+                    toDate: toDate.toISOString().split('T')[0],
+                    guestEmail: guestEmail
+                });
+                
                 alert("Booking request sent successfully! Please check your email for next steps.");
                 setShowReservationSummary(false);
             } else {
@@ -1027,6 +1037,12 @@ export function PropertyDetailScreen() {
                                 )}
                             </div>
 
+                            <ReservationStatus 
+                                propertyId={property.id}
+                                fromDate={fromDate}
+                                toDate={toDate}
+                            />
+
                             <button
                                 onClick={openReservationMail}
                                 className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors text-[15px] tracking-wide"
@@ -1046,6 +1062,12 @@ export function PropertyDetailScreen() {
 
             {/* Mobile sticky footer */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#DDDDDD] px-6 py-4">
+                <ReservationStatus 
+                    propertyId={property.id}
+                    fromDate={fromDate}
+                    toDate={toDate}
+                />
+                
                 <button
                     onClick={openReservationMail}
                     className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors"
