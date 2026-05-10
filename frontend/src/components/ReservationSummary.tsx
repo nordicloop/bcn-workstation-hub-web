@@ -8,7 +8,7 @@ interface ReservationSummaryProps {
   adults: number;
   children: number;
   infants: number;
-  onConfirm: () => void;
+  onConfirm: (guestEmail: string) => void;
   onCancel: () => void;
 }
 
@@ -26,6 +26,8 @@ export function ReservationSummary({
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [guestEmail, setGuestEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   // Calculate number of nights
   const nights = fromDate && toDate 
@@ -91,6 +93,29 @@ export function ReservationSummary({
     setPromoCode("");
     setDiscountAmount(0);
     setPromoError("");
+  };
+
+  // Validate email
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Handle confirm with email validation
+  const handleConfirm = () => {
+    if (!guestEmail.trim()) {
+      setEmailError("Please enter your email address");
+      return;
+    }
+
+    if (!validateEmail(guestEmail)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+
+    setEmailError("");
+    // Call onConfirm with the email
+    onConfirm(guestEmail);
   };
 
   const guestParts = [
@@ -215,12 +240,34 @@ export function ReservationSummary({
             )}
           </div>
 
+          {/* Email Input */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-[#222222] mb-3">Your Email Address</h4>
+            <input
+              type="email"
+              value={guestEmail}
+              onChange={(e) => {
+                setGuestEmail(e.target.value);
+                setEmailError("");
+              }}
+              placeholder="Enter your email address"
+              className="w-full px-4 py-3 border border-[#DDDDDD] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
+            />
+            {emailError && (
+              <p className="text-red-500 text-xs mt-1">{emailError}</p>
+            )}
+            <p className="text-xs text-[#717171] mt-2">
+              We'll send your booking confirmation and payment instructions to this email address.
+            </p>
+          </div>
+
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={onConfirm}
+              onClick={handleConfirm}
               data-testid="confirm-button"
-              className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-3 rounded-2xl transition-colors text-[15px] tracking-wide"
+              className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-3 rounded-2xl transition-colors text-[15px] tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!guestEmail.trim()}
             >
               Confirm Reservation
             </button>

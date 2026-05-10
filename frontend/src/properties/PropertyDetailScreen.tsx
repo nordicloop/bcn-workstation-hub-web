@@ -292,7 +292,7 @@ export function PropertyDetailScreen() {
         setShowReservationSummary(true);
     }
 
-    async function confirmReservation() {
+    async function confirmReservation(guestEmail: string) {
         if (!fromDate || !toDate || !property) {
             alert("Missing required information");
             return;
@@ -301,14 +301,6 @@ export function PropertyDetailScreen() {
         // Calculate nights and total
         const nights = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
         const baseAmount = nights * (property.pricePerNight || 0);
-        
-        // Get guest email
-        const guestEmail = prompt("Please enter your email address to receive booking confirmation:");
-        
-        if (!guestEmail) {
-            alert("Email address is required to proceed with booking");
-            return;
-        }
 
         try {
             // Show loading state
