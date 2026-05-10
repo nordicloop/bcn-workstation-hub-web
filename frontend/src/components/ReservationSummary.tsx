@@ -128,8 +128,8 @@ export function ReservationSummary({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
-        <div className="p-4">
+      <div className="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
+        <div className="p-5">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#222222]">Reservation Summary</h2>
@@ -142,64 +142,64 @@ export function ReservationSummary({
           </div>
 
           {/* Property Info */}
-          <div className="mb-4">
-            <h3 className="font-semibold text-[#222222] mb-1">{property.name}</h3>
-            <p className="text-xs text-[#717171]">{property.address}</p>
+          <div className="mb-5">
+            <h3 className="font-semibold text-[#222222] mb-2">{property.name}</h3>
+            <p className="text-sm text-[#717171]">{property.address}</p>
           </div>
 
           {/* Compact Info Grid */}
-          <div className="mb-4">
+          <div className="mb-5">
             <div className="grid grid-cols-2 gap-4 text-sm">
               {/* Dates Section */}
               <div>
-                <h4 className="font-semibold text-[#222222] mb-1">Dates</h4>
-                <div className="space-y-1">
+                <h4 className="font-semibold text-[#222222] mb-2">Dates</h4>
+                <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-[#717171] text-xs">Check-in</span>
-                    <span className="text-[#222222] text-xs">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
+                    <span className="text-[#717171] text-sm">Check-in</span>
+                    <span className="text-[#222222] text-sm">{fromDate ? fmt(fromDate) : 'Not selected'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#717171] text-xs">Check-out</span>
-                    <span className="text-[#222222] text-xs">{toDate ? fmt(toDate) : 'Not selected'}</span>
+                    <span className="text-[#717171] text-sm">Check-out</span>
+                    <span className="text-[#222222] text-sm">{toDate ? fmt(toDate) : 'Not selected'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#717171] text-xs">Nights</span>
-                    <span className="text-[#222222] text-xs">{nights}</span>
+                    <span className="text-[#717171] text-sm">Nights</span>
+                    <span className="text-[#222222] text-sm">{nights}</span>
                   </div>
                 </div>
               </div>
               
               {/* Guests Section */}
               <div>
-                <h4 className="font-semibold text-[#222222] mb-1">Guests</h4>
+                <h4 className="font-semibold text-[#222222] mb-2">Guests</h4>
                 <div className="flex justify-between">
-                  <span className="text-[#717171] text-xs">Total Guests</span>
-                  <span className="text-[#222222] text-xs">{guestParts}</span>
+                  <span className="text-[#717171] text-sm">Total Guests</span>
+                  <span className="text-[#222222] text-sm">{guestParts}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Pricing */}
-          <div className="mb-4">
-            <h4 className="font-semibold text-[#222222] mb-2">Price Details</h4>
-            <div className="space-y-1 text-sm">
+          <div className="mb-5">
+            <h4 className="font-semibold text-[#222222] mb-3">Price Details</h4>
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-[#717171] text-xs">
+                <span className="text-[#717171] text-sm">
                   {formatCurrency(basePricePerNight)} × {nights} nights
                 </span>
-                <span className="text-[#222222] text-xs">{formatCurrency(baseAmount)}</span>
+                <span className="text-[#222222] text-sm">{formatCurrency(baseAmount)}</span>
               </div>
               
               {discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span className="text-xs">Promo code discount</span>
-                  <span className="text-xs">-{formatCurrency(discountAmount)}</span>
+                  <span className="text-sm">Promo code discount</span>
+                  <span className="text-sm">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               
-              <div className="border-t pt-1 mt-1">
-                <div className="flex justify-between font-semibold text-sm">
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between font-semibold text-base">
                   <span>Total</span>
                   <span className="text-[#222222]">{formatCurrency(totalAmount)}</span>
                 </div>
@@ -208,8 +208,8 @@ export function ReservationSummary({
           </div>
 
           {/* Promo Code */}
-          <div className="mb-4">
-            <h4 className="font-semibold text-[#222222] mb-2">Promo Code</h4>
+          <div className="mb-5">
+            <h4 className="font-semibold text-[#222222] mb-3">Promo Code</h4>
             {discountAmount > 0 ? (
               <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
                 <div>
@@ -249,8 +249,8 @@ export function ReservationSummary({
           </div>
 
           {/* Email Input */}
-          <div className="mb-4">
-            <h4 className="font-semibold text-[#222222] mb-2">Your Email Address</h4>
+          <div className="mb-5">
+            <h4 className="font-semibold text-[#222222] mb-3">Your Email Address</h4>
             <input
               type="email"
               value={guestEmail}
@@ -259,29 +259,29 @@ export function ReservationSummary({
                 setEmailError("");
               }}
               placeholder="Enter your email address"
-              className="w-full px-3 py-2 border border-[#DDDDDD] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
+              className="w-full px-4 py-3 border border-[#DDDDDD] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:border-transparent"
             />
             {emailError && (
               <p className="text-red-500 text-xs mt-1">{emailError}</p>
             )}
-            <p className="text-xs text-[#717171] mt-1">
+            <p className="text-xs text-[#717171] mt-2">
               We'll send your booking confirmation to this email address.
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <button
               onClick={handleConfirm}
               data-testid="confirm-button"
-              className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-2 rounded-2xl transition-colors text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-3 rounded-2xl transition-colors text-[15px] tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!guestEmail.trim()}
             >
               Confirm Reservation
             </button>
             <button
               onClick={onCancel}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-[#222222] font-medium py-2 rounded-2xl transition-colors text-xs"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-[#222222] font-medium py-3 rounded-2xl transition-colors text-sm"
             >
               Cancel
             </button>
