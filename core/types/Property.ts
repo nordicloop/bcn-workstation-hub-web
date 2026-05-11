@@ -7,11 +7,14 @@ export type Property = {
         latitude: number;
         longitude: number;
     };
-    host: string
+    host: string;
     amenities: NamedList[];
     images: NamedList[];
     rules: NamedList[];
     reservedRange: DateRange[];
+    minimumStay?: number;
+    maximumStay?: number;
+    pricePerNight?: number;
 };
 
 export type NamedList = {

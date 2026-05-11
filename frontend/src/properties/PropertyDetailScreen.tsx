@@ -2,26 +2,62 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
 import type { Property, NamedList } from "@bcn/core";
 import { getProperty } from "../api-client";
+import { 
+    Snowflake, 
+    Sun, 
+    Tv, 
+    WashingMachine, 
+    Coffee,
+    Dog,
+    Wind,
+    Fan,
+    Wifi,
+    Map,
+    Bus
+} from "lucide-react";
 import { DateRangePicker } from "../components/DateRangePicker";
-import { GuestCounter } from "../components/GuestCounter";
 import { ImageGalleryModal } from "../components/ImageGalleryModal";
+import { PropertyMap } from "../components/PropertyMap";
+import { ReservationSummary } from "../components/ReservationSummary";
+import { ReservationStatus } from "../components/ReservationStatus";
+import { ReservationCookies } from "../utils/ReservationCookies";
 
-function AmenitySection({ section }: { section: NamedList }) {
+function removeRegistrationDetails(description: string): string {
+    // Remove Registration details section and related content
+    const cleanedDescription = description
+        .replace(/<b>Registration details<\/b>.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/Short rent register number:.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/Spain – National registration number.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/Catalonia – Regional registration number.*?(?=<br>|<br\/>|$)/gis, '')
+        .replace(/ESFCNT\d+.*?(?=<br>|<br\/>|$)/gis, '')
+        // Clean up multiple consecutive breaks but preserve paragraph spacing
+        .replace(/(<br\s*\/?>\s*){3,}/gi, '<br/><br/>') // Convert 3+ breaks to 2 breaks
+        .replace(/^(<br\s*\/?>\s*)+/, '') // Remove leading breaks
+        .replace(/(<br\s*\/?>\s*)+$/, '') // Remove trailing breaks
+        .replace(/<br\/><br\/>/g, '<br/><br/>'); // Ensure consistent double breaks for paragraphs
+    
+    return cleanedDescription.trim();
+}
+
+function AmenitySection({ section, isExpanded, className }: { section: NamedList; isExpanded: boolean; className?: string }) {
+    const itemsToShow = isExpanded ? section.items : section.items.slice(0, 1);
+    const hasMore = section.items.length > 1;
+
     return (
-        <div>
+        <div className={className}>
             {section.title && (
-                <h3 className="font-semibold text-[#222222] mb-3 text-sm uppercase tracking-wide">
+                <h3 className="font-semibold text-[#222222] mb-1 text-xs uppercase tracking-wide">
                     {section.title}
                 </h3>
             )}
-            <div className="grid grid-cols-2 gap-2">
-                {section.items.map((item) => (
+            <div className="grid grid-cols-1 gap-1">
+                {itemsToShow.map((item) => (
                     <div
                         key={item}
-                        className="flex items-center gap-3 text-[#484848]"
+                        className="flex items-center gap-1 text-[#484848]"
                     >
                         <svg
-                            className="w-5 h-5 text-[#484848] shrink-0"
+                            className="w-3 h-3 text-[#717171] shrink-0 mt-0.5"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -29,10 +65,15 @@ function AmenitySection({ section }: { section: NamedList }) {
                         >
                             <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        <span className="text-sm">{item}</span>
+                        <span className="text-xs leading-tight">{item}</span>
                     </div>
                 ))}
             </div>
+            {!isExpanded && hasMore && (
+                <div className="mt-1 text-xs text-[#717171]">
+                    +{section.items.length - 1} more
+                </div>
+            )}
         </div>
     );
 }
@@ -114,6 +155,21 @@ export function PropertyDetailScreen() {
     const [adults, setAdults] = useState(1);
     const [children, setChildren] = useState(0);
     const [infants, setInfants] = useState(0);
+    const [pets, setPets] = useState(0);
+    const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+    const [showCalendarPopup, setShowCalendarPopup] = useState(false);
+    const [amenitiesExpanded, setAmenitiesExpanded] = useState(false);
+    const [dateValidationError, setDateValidationError] = useState<string | null>(null);
+    const [showReservationSummary, setShowReservationSummary] = useState(false);
+
+    // Helper function to check if property has a specific amenity
+    const hasAmenity = (amenityName: string) => {
+        return property?.amenities.some(section => 
+            section.items.some(item => 
+                item.toLowerCase().includes(amenityName.toLowerCase())
+            )
+        );
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -122,6 +178,56 @@ export function PropertyDetailScreen() {
             .catch((err: Error) => setError(err.message))
             .finally(() => setLoading(false));
     }, [id]);
+
+    const validateStayDuration = (from: Date | null, to: Date | null) => {
+        if (!from || !to || !property) return null;
+        
+        const nights = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (property.minimumStay && nights < property.minimumStay) {
+            return `Minimum stay is ${property.minimumStay} nights. You selected ${nights} night${nights !== 1 ? 's' : ''}.`;
+        }
+        
+        if (property.maximumStay && nights > property.maximumStay) {
+            return `Maximum stay is ${property.maximumStay} nights. You selected ${nights} nights.`;
+        }
+        
+        return null;
+    };
+
+    const handleDateChange = (from: Date | null, to: Date | null) => {
+        setFromDate(from);
+        setToDate(to);
+        
+        const error = validateStayDuration(from, to);
+        setDateValidationError(error);
+    };
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            
+            // Check if click is outside all popup containers
+            const isOutsideGuestDropdown = !target.closest('.guest-dropdown-container');
+            const isOutsideCalendarPopup = !target.closest('.calendar-popup-container');
+            
+            if (showGuestDropdown && isOutsideGuestDropdown) {
+                setShowGuestDropdown(false);
+            }
+            if (showCalendarPopup && isOutsideCalendarPopup) {
+                setShowCalendarPopup(false);
+            }
+        };
+
+        if (showGuestDropdown || showCalendarPopup) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showGuestDropdown, showCalendarPopup]);
 
     if (loading) {
         return (
@@ -184,22 +290,77 @@ export function PropertyDetailScreen() {
             document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" });
             return;
         }
-        const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-        const guestParts = [
-            `${adults} adult${adults !== 1 ? "s" : ""}`,
-            children > 0 ? `${children} child${children !== 1 ? "ren" : ""}` : null,
-            infants > 0 ? `${infants} infant${infants !== 1 ? "s" : ""}` : null,
-        ].filter(Boolean).join(", ");
-        const subject = encodeURIComponent(`Booking Request – ${property!.name}`);
-        const body = encodeURIComponent(
-            `Hi,\n\nI would like to book the following stay:\n\n` +
-            `Property: ${property!.name} (ID: ${property!.id})\n` +
-            `Check-in: ${fmt(fromDate)}\n` +
-            `Check-out: ${fmt(toDate)}\n` +
-            `Guests: ${guestParts}\n\n` +
-            `Please let me know the next steps.\n\nThank you!`
-        );
-        window.location.href = `mailto:cyn.killner@gmail.com,imdavidfernandez@gmail.com?subject=${subject}&body=${body}`;
+        // Show reservation summary instead of direct email
+        setShowReservationSummary(true);
+    }
+
+    async function confirmReservation(guestEmail: string) {
+        if (!fromDate || !toDate || !property) {
+            alert("Missing required information");
+            return;
+        }
+
+        // Calculate nights and total
+        const nights = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+        const baseAmount = nights * (property.pricePerNight || 0);
+
+        try {
+            // Show loading state
+            const confirmButton = document.querySelector('[data-testid="confirm-button"]') as HTMLButtonElement;
+            if (confirmButton) {
+                confirmButton.textContent = "Sending...";
+                confirmButton.disabled = true;
+            }
+
+            // Call Mailgun API endpoint
+            const response = await fetch('https://us-central1-bcn-workation-hub.cloudfunctions.net/sendReservationEmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    property: property,
+                    fromDate: fromDate,
+                    toDate: toDate,
+                    adults: adults,
+                    children: children,
+                    infants: infants,
+                    guestEmail: guestEmail,
+                    totalAmount: baseAmount
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // Store reservation in cookies to prevent double booking
+                ReservationCookies.addReservation({
+                    propertyId: property.id,
+                    fromDate: fromDate.toISOString().split('T')[0],
+                    toDate: toDate.toISOString().split('T')[0],
+                    guestEmail: guestEmail
+                });
+                
+                alert("Booking request sent successfully! Please check your email for next steps.");
+                setShowReservationSummary(false);
+            } else {
+                throw new Error(result.error || "Failed to send booking request");
+            }
+        } catch (error) {
+            console.error("Error sending booking request:", error);
+            alert("Failed to send booking request. Please try again or contact us directly.");
+        } finally {
+            // Reset button state
+            const confirmButton = document.querySelector('[data-testid="confirm-button"]') as HTMLButtonElement;
+            if (confirmButton) {
+                confirmButton.textContent = "Confirm Booking";
+                confirmButton.disabled = false;
+            }
+        }
+    }
+
+    function cancelReservation() {
+        setShowReservationSummary(false);
     }
 
     return (
@@ -285,7 +446,7 @@ export function PropertyDetailScreen() {
                         <p
                             className="text-[#484848] leading-relaxed text-[15px]"
                             dangerouslySetInnerHTML={{
-                                __html: property.description,
+                                __html: removeRegistrationDetails(property.description),
                             }}
                         />
                     </section>
@@ -293,17 +454,103 @@ export function PropertyDetailScreen() {
                     {/* Amenities */}
                     {property.amenities.length > 0 && (
                         <section className="py-8 border-b border-[#EBEBEB]">
-                            <h2 className="font-display text-2xl font-semibold text-[#222222] mb-6">
-                                What this place offers
-                            </h2>
-                            <div className="space-y-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="font-display text-2xl font-semibold text-[#222222]">
+                                    What this place offers
+                                </h2>
+                                <div className="flex gap-4">
+                                    {hasAmenity('AC') && (
+                                        <>
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                    <Snowflake className="w-5 h-5 text-[#484848]" />
+                                                </div>
+                                                <span className="text-xs text-[#717171]">Cool</span>
+                                            </div>
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                    <Sun className="w-5 h-5 text-[#484848]" />
+                                                </div>
+                                                <span className="text-xs text-[#717171]">Heat</span>
+                                            </div>
+                                            {hasAmenity('Ceiling fan') && (
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                    <Fan className="w-5 h-5 text-[#484848]" />
+                                                </div>
+                                                <span className="text-xs text-[#717171]">Fan</span>
+                                            </div>
+                                        )}
+                                        </>
+                                    )}
+                                    {hasAmenity('TV') && (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                <Tv className="w-5 h-5 text-[#484848]" />
+                                            </div>
+                                            <span className="text-xs text-[#717171]">TV</span>
+                                        </div>
+                                    )}
+                                    {hasAmenity('Internet') && (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                <Wifi className="w-5 h-5 text-[#484848]" />
+                                            </div>
+                                            <span className="text-xs text-[#717171]">1GB WiFi</span>
+                                        </div>
+                                    )}
+                                    {hasAmenity('Washing machine') && (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                <WashingMachine className="w-5 h-5 text-[#484848]" />
+                                            </div>
+                                            <span className="text-xs text-[#717171]">Washer</span>
+                                        </div>
+                                    )}
+                                    {hasAmenity('Dryer') && (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                <Wind className="w-5 h-5 text-[#484848]" />
+                                            </div>
+                                            <span className="text-xs text-[#717171]">Dryer</span>
+                                        </div>
+                                    )}
+                                    {hasAmenity('Coffee') && (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                <Coffee className="w-5 h-5 text-[#484848]" />
+                                            </div>
+                                            <span className="text-xs text-[#717171]">Coffee</span>
+                                        </div>
+                                    )}
+                                    {hasAmenity('Pet') && (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mb-1">
+                                                <Dog className="w-5 h-5 text-[#484848]" />
+                                            </div>
+                                            <span className="text-xs text-[#717171]">Pet-friendly</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-4">
                                 {property.amenities.map((section) => (
                                     <AmenitySection
                                         key={section.title}
                                         section={section}
+                                        isExpanded={amenitiesExpanded}
+                                        className="flex-1 min-w-[250px] md:min-w-[300px]"
                                     />
                                 ))}
                             </div>
+                            {property.amenities.some(section => section.items.length > 1) && (
+                                <button
+                                    onClick={() => setAmenitiesExpanded(!amenitiesExpanded)}
+                                    className="mt-3 text-[#222222] text-xs font-medium hover:text-[#FF385C] transition-colors"
+                                >
+                                    {amenitiesExpanded ? 'Show less' : 'See more'}
+                                </button>
+                            )}
                         </section>
                     )}
 
@@ -313,11 +560,11 @@ export function PropertyDetailScreen() {
                             <h2 className="font-display text-2xl font-semibold text-[#222222] mb-6">
                                 House rules
                             </h2>
-                            <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {property.rules.map((section) => (
-                                    <div key={section.title}>
+                                    <div key={section.title} className="bg-gray-50 rounded-lg p-4">
                                         {section.title && (
-                                            <h3 className="font-semibold text-[#222222] mb-2">
+                                            <h3 className="font-semibold text-[#222222] mb-3 text-sm">
                                                 {section.title}
                                             </h3>
                                         )}
@@ -325,10 +572,10 @@ export function PropertyDetailScreen() {
                                             {section.items.map((item) => (
                                                 <li
                                                     key={item}
-                                                    className="flex items-start gap-3 text-[#484848] text-sm"
+                                                    className="flex items-start gap-2 text-[#484848] text-xs"
                                                 >
                                                     <svg
-                                                        className="w-4 h-4 text-[#717171] shrink-0 mt-0.5"
+                                                        className="w-3 h-3 text-[#717171] shrink-0 mt-0.5"
                                                         viewBox="0 0 24 24"
                                                         fill="none"
                                                         stroke="currentColor"
@@ -352,7 +599,7 @@ export function PropertyDetailScreen() {
                                                             y2="12"
                                                         />
                                                     </svg>
-                                                    {item}
+                                                    <span className="leading-tight">{item}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -361,6 +608,153 @@ export function PropertyDetailScreen() {
                             </div>
                         </section>
                     )}
+
+                    {/* Location section */}
+                    <section className="py-8 border-b border-[#EBEBEB]">
+                        <h2 className="font-display text-2xl font-semibold text-[#222222] mb-6">
+                            Location
+                        </h2>
+                        <div className="space-y-4">
+                            <p className="text-[#484848] text-sm">
+                                {property.address}
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span className="text-blue-600 text-sm">🏖️</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#222222] text-sm font-medium">Beach</p>
+                                        <p className="text-[#717171] text-xs">10 min walk</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <span className="text-green-600 text-sm">🚂</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#222222] text-sm font-medium">Train Station</p>
+                                        <p className="text-[#717171] text-xs">8 min walk</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                        <span className="text-orange-600 text-sm">🚌</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#222222] text-sm font-medium">Bus Stop</p>
+                                        <p className="text-[#717171] text-xs">1 min walk</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <span className="text-purple-600 text-sm">🏙️</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[#222222] text-sm font-medium">Barcelona</p>
+                                        <p className="text-[#717171] text-xs">25 min by train</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <PropertyMap
+                                latitude={property.location.latitude}
+                                longitude={property.location.longitude}
+                                address={property.address}
+                            />
+                            <div className="bg-gray-50 rounded-xl p-4 mt-6">
+                                <h3 className="font-semibold text-[#222222] text-sm mb-3">Transportation Available</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-start space-x-3">
+                                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                                            <span className="text-green-600 text-xs">🚂</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[#222222] text-sm font-medium">Rodalies de Catalunya (R1)</p>
+                                            <p className="text-[#717171] text-xs">Every 15-20 min to Barcelona (25 min) • 30 min to Mataró • Direct to airport connections</p>
+                                        </div>
+                                        <a
+                                            href="https://rodalies.gencat.cat/web/.content/00_home/04_mapes/mapa_rodalia_barcelona.pdf"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 inline-block mr-4"
+                                        >
+                                            <Map className="w-6 h-6" />
+                                        </a>
+                                    </div>
+                                    <div className="flex items-start space-x-3">
+                                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                                            <span className="text-blue-600 text-xs">🚌</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[#222222] text-sm font-medium">Bus Lines</p>
+                                            <p className="text-[#717171] text-xs">C-10, C-30, C-18, C-14, 862</p>
+                                        </div>
+                                        <a
+                                            href="https://www.moventis.es/es/lineas-horarios#4/13"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 inline-block mr-4"
+                                        >
+                                            <Bus className="w-6 h-6" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-green-50 rounded-xl p-4 mt-6">
+                                <h3 className="font-semibold text-[#222222] text-sm mb-3">Free Parking Available</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-start space-x-3">
+                                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                                            <span className="text-green-600 text-xs">🅿️</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-[#222222] text-sm font-medium">Street Parking</p>
+                                            <p className="text-[#717171] text-xs">Totally free and unlimited parking on surrounding streets</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2 mt-4">
+                                        <p className="text-[#222222] text-sm font-medium">Free Public Parking Areas:</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-green-600 text-sm">📍</span>
+                                                    <div>
+                                                        <p className="text-[#222222] text-xs font-medium">Parking Area A</p>
+                                                        <p className="text-[#717171] text-xs">2 min walk • Large capacity</p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href="https://maps.app.goo.gl/XJYETa5wg3jSKM4g9"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 text-xs underline hover:text-blue-800"
+                                                >
+                                                    View Map
+                                                </a>
+                                            </div>
+                                            <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-green-600 text-sm">📍</span>
+                                                    <div>
+                                                        <p className="text-[#222222] text-xs font-medium">Parking Area B</p>
+                                                        <p className="text-[#717171] text-xs">3 min walk • Always available</p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href="https://maps.app.goo.gl/qfYPRwDtemrmA4u76"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 text-xs underline hover:text-blue-800"
+                                                >
+                                                    View Map
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                     {/* Availability section */}
                     <section className="py-8" id="availability">
@@ -378,26 +772,13 @@ export function PropertyDetailScreen() {
                             toDate={toDate}
                             onFromDateChange={setFromDate}
                             onToDateChange={setToDate}
+                            onDateChange={handleDateChange}
+                            validationError={dateValidationError}
                             reservedRanges={property.reservedRange}
+                            infoPosition="top"
+                            onClose={() => setShowCalendarPopup(false)}
+                            showCloseButton={true}
                         />
-
-                        <div className="mt-8">
-                            <h3 className="font-semibold text-[#222222] mb-1">
-                                Guests
-                            </h3>
-                            <p className="text-sm text-[#717171] mb-4">
-                                This place allows up to 16 guests
-                            </p>
-                            <GuestCounter
-                                adults={adults}
-                                children={children}
-                                infants={infants}
-                                onAdultsChange={setAdults}
-                                onChildrenChange={setChildren}
-                                onInfantsChange={setInfants}
-                            />
-                        </div>
-
                     </section>
                 </div>
 
@@ -405,75 +786,262 @@ export function PropertyDetailScreen() {
                 <div className="hidden lg:block">
                     <div className="sticky top-28">
                         <div className="border border-[#DDDDDD] rounded-3xl p-7 shadow-xl">
-                            <p className="text-2xl font-bold text-[#222222] mb-5 font-display">
-                                Book your stay
-                            </p>
-
-                            {/* Date + guests picker */}
-                            <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
-                                <div className="grid grid-cols-2 divide-x divide-[#DDDDDD]">
-                                    <button
-                                        onClick={() => document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" })}
-                                        className="px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
-                                    >
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
-                                            Check-in
+                            <div className="mb-5">
+                                {fromDate && toDate ? (
+                                    <div>
+                                        <p className="text-3xl font-bold text-[#222222] font-display">
+                                            ${property.pricePerNight ? property.pricePerNight * Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) : 0}
                                         </p>
-                                        <p className="text-sm font-semibold text-[#222222] mt-1">
-                                            {fromDate ? (
-                                                fromDate.toLocaleDateString(
-                                                    "en-US",
-                                                    {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    }
-                                                )
-                                            ) : (
-                                                <span className="text-[#AAAAAA] font-normal">
-                                                    Add date
-                                                </span>
-                                            )}
+                                        <p className="text-sm text-[#717171] mt-1">
+                                            ${property.pricePerNight || 0} × {Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24))} nights
                                         </p>
-                                    </button>
-                                    <button
-                                        onClick={() => document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" })}
-                                        className="px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
-                                    >
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
-                                            Check-out
-                                        </p>
-                                        <p className="text-sm font-semibold text-[#222222] mt-1">
-                                            {toDate ? (
-                                                toDate.toLocaleDateString(
-                                                    "en-US",
-                                                    {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    }
-                                                )
-                                            ) : (
-                                                <span className="text-[#AAAAAA] font-normal">
-                                                    Add date
-                                                </span>
-                                            )}
-                                        </p>
-                                    </button>
-                                </div>
-                                <div className="border-t border-[#DDDDDD] px-4 py-3">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
-                                        Guests
+                                    </div>
+                                ) : (
+                                    <p className="text-2xl font-bold text-[#222222] font-display">
+                                        Add dates for prices
                                     </p>
-                                    <p className="text-sm font-semibold text-[#222222] mt-1">
-                                        {totalGuests} guest
-                                        {totalGuests !== 1 ? "s" : ""}
-                                        {infants > 0
-                                            ? `, ${infants} infant${infants !== 1 ? "s" : ""}`
-                                            : ""}
-                                    </p>
-                                </div>
+                                )}
                             </div>
+
+                            {/* Guest selector dropdown */}
+                            <div className="relative guest-dropdown-container">
+                                <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
+                                    <button
+                                        onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                                        className="w-full px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors flex items-center justify-between"
+                                    >
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
+                                                Guests
+                                            </p>
+                                            <p className="text-sm font-semibold text-[#222222] mt-1">
+                                                {totalGuests} guest
+                                                {totalGuests !== 1 ? "s" : ""}
+                                                {infants > 0
+                                                    ? `, ${infants} infant${infants !== 1 ? "s" : ""}`
+                                                    : ""}
+                                                {pets > 0
+                                                    ? `, ${pets} pet${pets !== 1 ? "s" : ""}`
+                                                    : ""}
+                                            </p>
+                                        </div>
+                                        <svg
+                                            className={`w-5 h-5 text-[#717171] transition-transform ${showGuestDropdown ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                {showGuestDropdown && (
+                                    <div className="absolute top-full left-0 right-0 bg-white border border-[#DDDDDD] rounded-2xl shadow-lg z-50 mt-1">
+                                        <div className="p-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <h4 className="font-semibold text-[#222222]">Guests</h4>
+                                                    <p className="text-sm text-[#717171]">This place allows up to 16 guests</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setShowGuestDropdown(false)}
+                                                    className="p-1 hover:bg-[#F7F7F7] rounded-full"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Adults</span>
+                                                        <p className="text-xs text-[#717171]">Age 13+</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setAdults(Math.max(1, adults - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={adults === 1}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {adults}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setAdults(adults + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Children</span>
+                                                        <p className="text-xs text-[#717171]">Ages 2-12</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setChildren(Math.max(0, children - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={children === 0}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {children}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setChildren(children + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Infants</span>
+                                                        <p className="text-xs text-[#717171]">Under 2</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setInfants(Math.max(0, infants - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={infants === 0}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {infants}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setInfants(infants + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                                                    <div>
+                                                        <span className="text-sm text-[#222222]">Pets</span>
+                                                        <p className="text-xs text-[#717171]">Bringing pets?</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => setPets(Math.max(0, pets - 1))}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={pets === 0}
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-semibold text-[#222222] w-8 text-center">
+                                                            {pets}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setPets(pets + 1)}
+                                                            className="w-8 h-8 rounded-full border border-[#DDDDDD] flex items-center justify-center hover:bg-[#F7F7F7] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            
+                            {/* Date picker popup */}
+                            <div className="relative calendar-popup-container">
+                                <div className="border border-[#DDDDDD] rounded-2xl overflow-hidden mb-4">
+                                    <button
+                                        onClick={() => setShowCalendarPopup(!showCalendarPopup)}
+                                        className="w-full px-4 py-3 text-left hover:bg-[#F7F7F7] transition-colors"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#717171]">
+                                                    Dates
+                                                </p>
+                                                <p className="text-sm font-semibold text-[#222222] mt-1">
+                                                    {fromDate && toDate ? (
+                                                        `${fromDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${toDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                                                    ) : (
+                                                        <span className="text-[#AAAAAA] font-normal">
+                                                            Select dates
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <svg
+                                                className={`w-5 h-5 text-[#717171] transition-transform ${showCalendarPopup ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </div>
+                                
+                                {showCalendarPopup && (
+                                    <div className="absolute top-full right-0 bg-white rounded-2xl shadow-xl z-[9999] mt-1" style={{ minWidth: '600px', maxWidth: '700px' }}>
+                                        <div>
+                                            <DateRangePicker
+                                                fromDate={fromDate}
+                                                toDate={toDate}
+                                                onFromDateChange={(date) => {
+                                                    setFromDate(date);
+                                                    // Keep popup open when selecting dates
+                                                    if (date && toDate) {
+                                                        // Both dates selected, could optionally close after a delay
+                                                    }
+                                                }}
+                                                onToDateChange={(date) => {
+                                                    setToDate(date);
+                                                    // Close popup when both dates are selected
+                                                    if (date && fromDate) {
+                                                        setShowCalendarPopup(false);
+                                                    }
+                                                }}
+                                                reservedRanges={property.reservedRange}
+                                                infoPosition="top"
+                                                onClose={() => setShowCalendarPopup(false)}
+                                                showCloseButton={true}
+                                            />
+                                        </div>
+                                                                                </div>
+                                )}
+                            </div>
+
+                            <ReservationStatus 
+                                propertyId={property.id}
+                                fromDate={fromDate}
+                                toDate={toDate}
+                            />
 
                             <button
                                 onClick={openReservationMail}
@@ -486,23 +1054,20 @@ export function PropertyDetailScreen() {
                                 You won't be charged yet
                             </p>
 
-                            {nightCount && (
-                                <div className="mt-5 pt-5 border-t border-[#EBEBEB] space-y-2">
-                                    <div className="flex justify-between text-sm text-[#484848]">
-                                        <span>
-                                            {nightCount} night
-                                            {nightCount !== 1 ? "s" : ""}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                                                    </div>
                     </div>
-                </div>
+
+                                </div>
             </div>
 
             {/* Mobile sticky footer */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#DDDDDD] px-6 py-4">
+                <ReservationStatus 
+                    propertyId={property.id}
+                    fromDate={fromDate}
+                    toDate={toDate}
+                />
+                
                 <button
                     onClick={openReservationMail}
                     className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors"
@@ -510,6 +1075,20 @@ export function PropertyDetailScreen() {
                     Reserve
                 </button>
             </div>
+
+            {/* Reservation Summary Modal */}
+            {showReservationSummary && property && (
+                <ReservationSummary
+                    property={property}
+                    fromDate={fromDate}
+                    toDate={toDate}
+                    adults={adults}
+                    children={children}
+                    infants={infants}
+                    onConfirm={confirmReservation}
+                    onCancel={cancelReservation}
+                />
+            )}
         </main>
     );
 }

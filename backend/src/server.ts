@@ -1,21 +1,28 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import { createServer } from "http";
 import propertiesController from "./properties/controller";
 
-const app = express();
-const server = createServer(app);
+const server = express();
 
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+server.use(helmet());
+server.use(cors());
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
 
-app.get("/health", (_req, res) => {
+server.get("/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.use("/", propertiesController);
+server.use("/", propertiesController);
+
+server.get("//health", (_, res) => {
+    res.json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        service: "bcn-workation-hub-api",
+        version: "2.0",
+    });
+});
 
 export default server;

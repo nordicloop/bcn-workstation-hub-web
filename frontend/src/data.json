@@ -10,6 +10,9 @@
         "longitude": 2.35008
       },
       "host": "Cynthia",
+      "pricePerNight": 85,
+      "minimumStay": 31,
+      "maximumStay": 335,
       "amenities": [
         {
           "title": "Bathroom",
@@ -125,64 +128,14 @@
             "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/2b8c53b1-4a6a-4f0f-bb90-3e458a09bb0d.jpeg",
             "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/2043ca6c-ba27-43ce-8731-91cee193cc96.jpeg"
           ]
-        },
-        {
-          "title": "Living room",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/3dc56863-bbef-4d50-9ce2-e25741d3d8f7.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/fa1428a5-22d2-4535-9032-2866ef1ba6fc.jpeg"
-          ]
-        },
-        {
-          "title": "Full kitchen",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/60c66520-956a-415e-8c9b-3a98698f701b.jpeg"
-          ]
-        },
-        {
-          "title": "Dining area",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/0ecc500d-160f-46bc-9a8a-6ab87d9a3cc2.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/28e844f6-c945-4abe-a6a4-cfb1d2193ff0.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/ff7872cd-2e24-4159-9768-2efb139d2c01.jpeg"
-          ]
-        },
-        {
-          "title": "Bedroom",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/2043ca6c-ba27-43ce-8731-91cee193cc96.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/32aee9fc-ff39-4ef1-b226-3c2eb477f0cb.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/dcc75066-645f-48e4-a2aa-306b71e57edb.jpeg"
-          ]
-        },
-        {
-          "title": "Full bathroom",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/38591a27-edad-40a7-9d10-392e9ef54ff0.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/ad041fc6-084a-43f8-ab62-51171c70c36d.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/d583e502-5277-498d-b3da-a5f6acfbe3a9.jpeg"
-          ]
-        },
-        {
-          "title": "Patio",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/2b8c53b1-4a6a-4f0f-bb90-3e458a09bb0d.jpeg"
-          ]
-        },
-        {
-          "title": "Additional photos",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/31b3a4ba-084c-49ad-8a29-150fd5749735.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-851289997009741371/original/5d671f64-d556-48ea-a755-81c71925c5d9.jpeg"
-          ]
         }
       ],
       "rules": [
         {
           "title": "Checking in and out",
           "items": [
-            "Check-in after 3:00 pm",
-            "Checkout before 11:00 am",
+            "Check-in after 3:00 pm",
+            "Checkout before 11:00 am",
             "Self check-in with lockbox"
           ]
         },
@@ -208,21 +161,28 @@
       ],
       "reservedRange": [
         {
-          "from": "2026-08-19T18:30:00.000Z",
-          "to": "2026-09-22T18:30:00.000Z"
+          "from": "2026-08-19T22:00:00.000Z",
+          "to": "2026-09-22T22:00:00.000Z"
+        },
+        {
+          "from": "2026-05-06T22:00:00.000Z",
+          "to": "2026-05-31T22:00:00.000Z"
         }
       ]
     },
     {
       "id": "1663074583509006957",
       "name": "Modern 2BR, fast wifi, A/C, walk to beach & train",
-      "description": "Work & Relax: Modern 2BR Near BCN & Costa Brava<br /><br />Newly renovated 2BR apartment in peaceful Premià de Mar. Perfect for remote work with high-speed Wi-Fi and AC. Includes a private patio for quiet evenings. The perfect Mediterranean home base.<br /><br />Escape the crowds and enjoy large beaches and the modern Marina (gym, dining, shops).<br /> <br />Effortless travel: a 10-min walk to the train connects you to central Barcelona in 30 min or north to the stunning Costa Brava.<br /><br /><b>The space</b><br />Experience the perfect \"workation\" in this bright, fully renovated 2-bedroom home. Designed for modern living, the apartment features a sleek open kitchen and a comfortable living area equipped with full air conditioning and fast internet. After work, unwind on your private patio—a secluded spot perfect for morning coffee or a glass of wine in total tranquility.<br /><br />The Location<br />Located in the charming town of Premià de Mar, you are far from the city noise but perfectly connected to the action.<br />• The Beach & Marina: A 10-minute stroll leads you to expansive, uncrowded beaches and a modern Marina. Here, you’ll find everything you need: a high-end gym, grocery stores, and a variety of seaside restaurants.<br />• Easy Transit: The train station is just 10 minutes away on foot. The scenic coastal train takes you directly to the heart of Barcelona in just 30 minutes.<br /><br />Explore the Region<br />This is the ideal gateway for explorers. Use the excellent rail links to head south for a day in the city or head north to discover the famous hidden coves and crystal-clear waters of the Maresme and Costa Brava. Enjoy the authentic Catalan lifestyle with all the modern amenities you require.<br /><br /><b>Registration details</b><br />Spain – National registration number<br />ESFCNT00000809400065159300000000000000000000000000009<br /><br />Catalonia – Regional registration number<br />Exempt",
+      "description": "Work & Relax: Modern 2BR Near BCN & Costa Brava<br /><br />Newly renovated 2BR apartment in peaceful Premià de Mar. Perfect for remote work with high-speed Wi-Fi and AC. Includes a private patio for quiet evenings. The perfect Mediterranean home base.<br /><br />Escape the crowds and enjoy large beaches and the modern Marina (gym, dining, shops).<br /> <br />Effortless travel: a 10-min walk to the train connects you to central Barcelona in 30 min or north to the stunning Costa Brava.<br /><br /><b>The space</b><br />Experience the perfect \"workation\" in this bright, fully renovated 2-bedroom home. Designed for modern living, the apartment features a sleek open kitchen and a comfortable living area equipped with full air conditioning and fast internet. After work, unwind on your private patio—a secluded spot perfect for morning coffee or a glass of wine in total tranquility.<br /><br />The Location<br />Located in the charming town of Premià de Mar, you are far from the city noise but perfectly connected to the action.<br />• The Beach & Marina: A 10-minute stroll leads you to expansive, uncrowded beaches and a modern Marina. Here, you'll find everything you need: a high-end gym, grocery stores, and a variety of seaside restaurants.<br />• Easy Transit: The train station is just 10 minutes away on foot. The scenic coastal train takes you directly to the heart of Barcelona in just 30 minutes.<br /><br />Explore the Region<br />This is the ideal gateway for explorers. Use the excellent rail links to head south for a day in the city or head north to discover the famous hidden coves and crystal-clear waters of the Maresme and Costa Brava. Enjoy the authentic Catalan lifestyle with all the modern amenities you require.<br /><br /><b>Registration details</b><br />Spain – National registration number<br />ESFCNT00000809400065159300000000000000000000000000009<br /><br />Catalonia – Regional registration number<br />Exempt",
       "address": "Premià de Mar",
       "location": {
         "latitude": 41.4946,
         "longitude": 2.35084
       },
       "host": "Cynthia",
+      "pricePerNight": 95,
+      "minimumStay": 31,
+      "maximumStay": 335,
       "amenities": [
         {
           "title": "Bathroom",
@@ -334,77 +294,14 @@
             "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/ff391350-c313-4d34-b2fb-f5f1377067f4.jpeg",
             "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/3ecd8117-2e1d-4d65-987f-53edb71783e8.jpeg"
           ]
-        },
-        {
-          "title": "Full kitchen",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/9cf00873-0eb5-4042-9382-6715b0a792fd.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/f529ba46-71ee-407c-81bb-d3d4205864dc.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/3c380122-2a30-4a75-b991-43486368245c.jpeg"
-          ]
-        },
-        {
-          "title": "Dining area",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/3ecd8117-2e1d-4d65-987f-53edb71783e8.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/a8f7ade5-085d-4d06-b81a-5de9265de47c.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/ede41dcc-0c74-47fa-9712-240aedf6484b.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/5bc2ba5c-b0c7-486d-ae17-97f3a103c57c.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/e0ba2342-ac93-4f7c-ba65-df82a8e74c6c.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/9efcae24-42ae-4a95-8e66-1f8f9f25c18e.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/49447bb1-48e4-43ea-a1d8-8d0c216d2e8e.jpeg"
-          ]
-        },
-        {
-          "title": "Bedroom 1",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/ff391350-c313-4d34-b2fb-f5f1377067f4.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/9079995d-1993-4f65-a13c-9b8d3a0d5642.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/88a86ed7-2ff7-4d0d-8c42-5d4495590d23.jpeg"
-          ]
-        },
-        {
-          "title": "Bedroom 2",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/063177ec-b807-4160-a684-72256e3f9afc.jpeg"
-          ]
-        },
-        {
-          "title": "Full bathroom",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/aad56e04-96c0-4413-a62b-256fc7d08f1c.jpeg"
-          ]
-        },
-        {
-          "title": "Laundry area",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/d218ce83-eb4e-46ad-8cf4-2cf8d90e4f9a.jpeg"
-          ]
-        },
-        {
-          "title": "Exterior",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/f7667dbe-75ea-47db-9a20-f761867dcbc7.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/8ccbae82-b47e-46f0-8fa0-a88ef9ed07c6.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/f38a1ba8-7c49-412f-9052-df53247120c0.jpeg"
-          ]
-        },
-        {
-          "title": "Additional photos",
-          "items": [
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/36f223cc-c23f-41df-9539-6b9f2be3a218.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/7b4c8d2c-7299-46a4-aee4-5abd26ce4d7a.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/30b0edfd-a409-4636-b4b0-8d375ce6ac3f.jpeg",
-            "https://a0.muscache.com/im/pictures/hosting/Hosting-1663074583509006957/original/cd831665-bca0-4239-a34a-927d2d1f0165.jpeg"
-          ]
         }
       ],
       "rules": [
         {
           "title": "Checking in and out",
           "items": [
-            "Check-in after 3:00 pm",
-            "Checkout before 11:00 am",
+            "Check-in after 3:00 pm",
+            "Checkout before 11:00 am",
             "Self check-in with lockbox"
           ]
         },
@@ -444,6 +341,9 @@
         "longitude": 2.35159
       },
       "host": "Cynthia",
+      "pricePerNight": 75,
+      "minimumStay": 31,
+      "maximumStay": 335,
       "amenities": [
         {
           "title": "Scenic views",
@@ -564,61 +464,14 @@
             "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/9ccc1f08-52a8-4558-bfbf-3a384dede4f3.jpeg",
             "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/410589d1-d755-4185-92ba-a76fd4645371.jpeg"
           ]
-        },
-        {
-          "title": "Living room",
-          "items": [
-            "https://a0.muscache.com/im/pictures/cf8e0304-7ec5-4741-9faf-d1a7bc312102.jpg"
-          ]
-        },
-        {
-          "title": "Full kitchen",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/b4ea07ea-7ed8-47ad-96e7-f20d2741b79f.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/014b8b47-9878-475c-b266-59a809ff3e59.jpeg"
-          ]
-        },
-        {
-          "title": "Bedroom",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/fa790839-c7e5-4a12-ad9d-3e560342290e.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/410589d1-d755-4185-92ba-a76fd4645371.jpeg"
-          ]
-        },
-        {
-          "title": "Full bathroom",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/0464c1aa-00c4-47aa-88c6-66e6ba93a74c.jpeg"
-          ]
-        },
-        {
-          "title": "Workspace",
-          "items": [
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/9ccc1f08-52a8-4558-bfbf-3a384dede4f3.jpeg"
-          ]
-        },
-        {
-          "title": "Balcony",
-          "items": [
-            "https://a0.muscache.com/im/pictures/e9108c79-d04d-4910-a883-84e9b224cbc0.jpg"
-          ]
-        },
-        {
-          "title": "Additional photos",
-          "items": [
-            "https://a0.muscache.com/im/pictures/9cdbf53f-9621-4a2f-81ea-7f62b1d4fb34.jpg",
-            "https://a0.muscache.com/im/pictures/301c968d-b9f1-470b-9018-5948d80ea7f5.jpg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/cd78fc0d-b3d9-46ef-866c-262391ed172e.jpeg",
-            "https://a0.muscache.com/im/pictures/miso/Hosting-1043429957458843360/original/95dd810a-725b-40fa-b531-306282f65a1d.png"
-          ]
         }
       ],
       "rules": [
         {
           "title": "Checking in and out",
           "items": [
-            "Check-in after 3:00 pm",
-            "Checkout before 11:00 am",
+            "Check-in after 3:00 pm",
+            "Checkout before 11:00 am",
             "Self check-in with lockbox"
           ]
         },
