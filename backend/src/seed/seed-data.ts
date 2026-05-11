@@ -1,6 +1,6 @@
+import { Property } from "@bcn/core";
 import { getFirestore } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { Property } from "./types";
 import * as fs from "fs";
 import * as path from "path";
 

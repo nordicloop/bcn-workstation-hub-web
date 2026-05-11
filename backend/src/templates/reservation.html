@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Request</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+          <tr>
+            <td style="background-color:#1a1a2e;padding:28px 40px;">
+              <p style="margin:0;color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">BCN Workation Hub</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px 40px 24px;">
+              <p style="margin:0 0 16px;color:#111827;font-size:18px;font-weight:600;">Dear Guest,</p>
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+                Thank you for your booking request for <strong>{{PROPERTY_NAME}}</strong>! We're excited to host you.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:6px;border:1px solid #e5e7eb;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 14px;color:#111827;font-size:15px;font-weight:600;">Booking Details</p>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:5px 0;color:#6b7280;font-size:14px;width:140px;">Property</td>
+                        <td style="padding:5px 0;color:#111827;font-size:14px;">{{PROPERTY_NAME}} <span style="color:#9ca3af;">(ID: {{PROPERTY_ID}})</span></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 0;color:#6b7280;font-size:14px;">Check-in</td>
+                        <td style="padding:5px 0;color:#111827;font-size:14px;">{{CHECK_IN}}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 0;color:#6b7280;font-size:14px;">Check-out</td>
+                        <td style="padding:5px 0;color:#111827;font-size:14px;">{{CHECK_OUT}}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 0;color:#6b7280;font-size:14px;">Duration</td>
+                        <td style="padding:5px 0;color:#111827;font-size:14px;">{{NIGHTS}} nights</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 0;color:#6b7280;font-size:14px;">Guests</td>
+                        <td style="padding:5px 0;color:#111827;font-size:14px;">{{GUESTS}}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0 0;color:#6b7280;font-size:14px;font-weight:600;">Total Amount</td>
+                        <td style="padding:8px 0 0;color:#111827;font-size:14px;font-weight:700;">${{TOTAL_AMOUNT}} USD</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 8px;color:#111827;font-size:15px;font-weight:600;">Next Steps</p>
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+                To confirm your reservation and proceed with the 10% deposit payment, please add this email address to your contacts and reply to this message. Our property manager will then send you the secure payment link and complete booking instructions.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#eff6ff;border-left:4px solid #3b82f6;border-radius:0 6px 6px 0;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:14px 18px;">
+                    <p style="margin:0;color:#1e40af;font-size:14px;"><strong>Property Address:</strong> {{PROPERTY_ADDRESS}}</p>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 4px;color:#374151;font-size:15px;line-height:1.6;">We look forward to welcoming you to Premià de Mar!</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;">
+              <p style="margin:0;color:#374151;font-size:14px;">Best regards,</p>
+              <p style="margin:4px 0 0;color:#111827;font-size:14px;font-weight:600;">Cynthia</p>
+              <p style="margin:2px 0 0;color:#6b7280;font-size:13px;">Property Manager · BCN Workation Hub</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

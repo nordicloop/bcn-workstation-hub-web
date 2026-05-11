@@ -1,4 +1,4 @@
-import { PlaywrightCrawler } from "crawlee";
+import { Dataset, PlaywrightCrawler } from "crawlee";
 import { extractRealPriceFromAirbnb } from "./real-price-extractor";
 
 const testListings = [
@@ -41,7 +41,7 @@ const crawler = new PlaywrightCrawler({
                 });
             }
             
-        } catch (error) {
+        } catch (error: any) {
             console.error(`❌ ERROR - Failed to extract price:`, error);
             
             // Store the error

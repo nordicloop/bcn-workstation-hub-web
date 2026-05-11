@@ -1,4 +1,4 @@
-import { PlaywrightCrawler } from "crawlee";
+import { Dataset, PlaywrightCrawler } from "crawlee";
 import { enhanceScraperWithMCPPrice } from "./mcp-price-extractor";
 
 const testListings = [

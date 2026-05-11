@@ -62,7 +62,7 @@ export async function extractRealPriceFromAirbnb(page: Page, listingId: string):
             if (pricePerNight > 0) break;
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(`❌ Selector "${selector}" failed: ${error.message}`);
         continue;
       }
@@ -122,7 +122,7 @@ export async function extractRealPriceFromAirbnb(page: Page, listingId: string):
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(`❌ Booking section search failed: ${error.message}`);
       }
     }
@@ -162,7 +162,7 @@ export async function extractRealPriceFromAirbnb(page: Page, listingId: string):
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(`❌ Structured data search failed: ${error.message}`);
       }
     }

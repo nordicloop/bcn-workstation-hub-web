@@ -1,16 +1,10 @@
-import { Dataset, PlaywrightCrawler } from "crawlee";
-import { createProperty } from "./db";
-import type { Property } from "@bcn/core";
-import { Parser } from "jsonld";
-import { fetchReservedDates } from "./ical";
-import { icalUrl } from "./config";
-import { airbnbListings } from "./listings";
-import { extractHost, extractAmenities, extractImages, extractRules } from "./extractors";
-import { log } from "apify";
-import type { RequestHandler } from "crawlee";
+import type { DateRange, NamedList, Property } from "@bcn/core";
+import { PlaywrightCrawler } from "crawlee";
+import { extractAmenities, extractHost, extractImages, extractRules, fetchReservedDates } from "./extractors";
 import { enhanceScraperWithMCPPrice } from "./mcp-price-extractor";
 import { combinePriceEstimations } from "./price-estimator";
 import { getRealPrice } from "./price-lookup";
+import { createProperty } from "./properties/repository";
 
 const airbnbListings = [
     {
@@ -29,66 +23,6 @@ const airbnbListings = [
             "https://www.airbnb.com/calendar/ical/1043429957458843360.ics?t=a181767e0f984f9d9fae37f196c4cbdc",
     },
 ];
-
-function extractImages(mediaTour: any, featuredImages: string[]): NamedList[] {
-    const images: NamedList[] = [];
-
-    if (Array.isArray(featuredImages) && featuredImages.length > 0) {
-        images.push({ title: "Featured", items: featuredImages });
-    }
-
-    if (!mediaTour) return images;
-
-    (mediaTour.stops ?? []).forEach((stop: any) => {
-        images.push({
-            title: stop.name ?? "",
-            items: (stop.items ?? [])
-                .filter((item: any) => item.image?.uri)
-                .map((item: any) => item.image.uri),
-        });
-    });
-
-    return images;
-}
-
-function extractAmenities(groups: any[]): NamedList[] {
-    return groups.map((group: any) => ({
-        title: group.title ?? "",
-        items: (group.amenities ?? []).map((a: any) => a.title).filter(Boolean),
-    }));
-}
-
-function extractHost(sections: any[]): string {
-    const section = sections.find((s: any) => s.sectionId === "MEET_YOUR_HOST");
-    return section?.section?.cardData?.name ?? "";
-}
-
-async function fetchReservedDates(icalUrl: string): Promise<DateRange[]> {
-    const events = await ical.async.fromURL(icalUrl);
-    return Object.values(events)
-        .filter(
-            (e): e is VEvent =>
-                e.type === "VEVENT" && 
-                ((e as VEvent).summary === "Reserved" || (e as VEvent).summary === "Airbnb (Not available)")
-        )
-        .map((e) => ({ from: e.start.toISOString(), to: e.end.toISOString() }));
-}
-
-function extractRules(sections: any[]): NamedList[] {
-    const section = sections.find(
-        (s: any) => s.sectionId === "POLICIES_DEFAULT"
-    );
-    if (!section) return [];
-
-    return (section.section?.houseRulesSections ?? []).map(
-        (ruleSection: any) => ({
-            title: ruleSection.title ?? "",
-            items: (ruleSection.items ?? [])
-                .map((item: any) => item.title)
-                .filter(Boolean),
-        })
-    );
-}
 
 const crawler = new PlaywrightCrawler({
     async requestHandler({ page, log, request }) {
