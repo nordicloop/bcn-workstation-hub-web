@@ -196,11 +196,11 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                     onFromDateChange(date)
                     onToDateChange(null)
                 } else {
-                    // Check minimum stay validation
+                    // Check minimum stay validation only when the property defines one
                     const nights = Math.ceil((date.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
-                    const minimumStay = property?.minimumStay || 31;
+                    const minimumStay = property?.minimumStay;
                     
-                    if (nights < minimumStay) {
+                    if (minimumStay !== undefined && minimumStay !== null && nights < minimumStay) {
                         // Validation failed - set local error and don't update toDate
                         setLocalValidationError(`Minimum stay is ${minimumStay} nights. You selected ${nights} night${nights !== 1 ? 's' : ''}.`);
                         newToDate = null;
