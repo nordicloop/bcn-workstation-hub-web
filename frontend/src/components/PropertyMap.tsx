@@ -35,9 +35,22 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
             try {
                 console.log('🗺️ Initializing Google Maps...');
                 
-                if (!window.google || !window.google.maps) {
-                    console.error('🗺️ Google Maps API not loaded');
+                // More thorough check for Google Maps API
+                if (!window.google) {
+                    console.error('🗺️ Google object not available');
                     setLoadError('Google Maps API not loaded');
+                    return;
+                }
+                
+                if (!window.google.maps) {
+                    console.error('🗺️ Google Maps API not available');
+                    setLoadError('Google Maps API not loaded');
+                    return;
+                }
+                
+                if (typeof window.google.maps.Map !== 'function') {
+                    console.error('🗺️ Google Maps Map constructor not available');
+                    setLoadError('Google Maps Map constructor not available');
                     return;
                 }
 
@@ -92,6 +105,15 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
             return;
         }
 
+        // Set up global callback function BEFORE checking for existing script
+        window.initGoogleMap = initMap;
+
+        // Set up error handler
+        window.googleMapsError = () => {
+            console.error('❌ Google Maps API loading failed');
+            setLoadError('Google Maps API loading failed');
+        };
+
         // Check if script is already loaded or loading
         const existingScript = document.querySelector('#google-maps-script');
         if (existingScript) {
@@ -115,32 +137,48 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
             return;
         }
 
-        // Set up global callback function
-        window.initGoogleMap = initMap;
-
-        // Set up error handler
-        window.googleMapsError = () => {
-            console.error('❌ Google Maps API loading failed');
-            setLoadError('Google Maps API loading failed');
+        // Load Google Maps API with proper async loading pattern
+        const loadGoogleMaps = () => {
+            return new Promise<void>((resolve, reject) => {
+                // Create script with proper async loading
+                const script = document.createElement('script');
+                script.id = 'google-maps-script';
+                script.type = 'text/javascript';
+                script.async = true;
+                script.defer = true;
+                
+                // Set the source with loading=async parameter
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&loading=async&callback=initGoogleMap&error=googleMapsError`;
+                
+                script.onerror = (error) => {
+                    console.error('❌ Failed to load Google Maps script:', error);
+                    setLoadError('Failed to load Google Maps script');
+                    reject(error);
+                };
+                
+                script.onload = () => {
+                    console.log('✅ Google Maps script loaded successfully');
+                    // Wait for the API to be fully available
+                    const checkApiReady = () => {
+                        if (window.google && window.google.maps && typeof window.google.maps.Map === 'function') {
+                            console.log('✅ Google Maps API is ready');
+                            resolve();
+                        } else {
+                            setTimeout(checkApiReady, 50);
+                        }
+                    };
+                    checkApiReady();
+                };
+                
+                // Add to document head
+                document.head.appendChild(script);
+            });
         };
 
-        // Load Google Maps API
-        const script = document.createElement('script');
-        script.id = 'google-maps-script';
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMap&error=googleMapsError`;
-        script.async = true;
-        script.defer = true;
-        
-        script.onerror = (error) => {
-            console.error('❌ Failed to load Google Maps script:', error);
-            setLoadError('Failed to load Google Maps script');
-        };
-        
-        script.onload = () => {
-            console.log('✅ Google Maps script loaded successfully');
-        };
-        
-        document.head.appendChild(script);
+        // Load the script
+        loadGoogleMaps().catch(error => {
+            console.error('❌ Google Maps loading failed:', error);
+        });
 
         return () => {
             if (window.initGoogleMap) {
