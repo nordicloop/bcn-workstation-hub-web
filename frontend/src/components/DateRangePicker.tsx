@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { DateRange } from '@bcn/core'
+import type { DateRange, Property } from '@bcn/core'
 
 type DateRangePickerProps = {
     fromDate: Date | null
@@ -12,6 +12,7 @@ type DateRangePickerProps = {
     infoPosition?: 'top' | 'bottom'
     onClose?: () => void
     showCloseButton?: boolean
+    property?: Property | null
 }
 
 const MONTH_NAMES = [
@@ -73,11 +74,12 @@ function getCellClass(
     return 'text-[#222222] hover:bg-gray-100 rounded-full cursor-pointer'
 }
 
-export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, onDateChange, validationError, reservedRanges = [], infoPosition = 'bottom', onClose, showCloseButton = false }: DateRangePickerProps) {
+export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateChange, onDateChange, validationError, reservedRanges = [], infoPosition = 'bottom', onClose, showCloseButton = false, property }: DateRangePickerProps) {
     const today = startOfDay(new Date())
     const [viewYear, setViewYear] = useState(today.getFullYear())
     const [viewMonth, setViewMonth] = useState(today.getMonth())
     const [hover, setHover] = useState<Date | null>(null)
+    const [localValidationError, setLocalValidationError] = useState<string | null>(null)
 
     // Update view to show selected dates when they change
     useEffect(() => {
@@ -171,15 +173,22 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
             newToDate = null
             onFromDateChange(date)
             onToDateChange(null)
+            // Clear local validation error when selecting new check-in
+            setLocalValidationError(null)
         } else {
             if (isSameDay(date, fromDate)) {
                 newFromDate = null
                 onFromDateChange(null)
+                // Clear local validation error when clearing check-in
+                setLocalValidationError(null)
             } else if (date < fromDate) {
                 newFromDate = date
                 newToDate = null
                 onFromDateChange(date)
+                // Clear local validation error when selecting new check-in
+                setLocalValidationError(null)
             } else {
+                // This is a checkout date selection with check-in already filled
                 if (rangeContainsBlocked(fromDate, date, reservedRanges)) {
                     // Range would span a blocked period — start fresh from this date
                     newFromDate = date
@@ -187,8 +196,25 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                     onFromDateChange(date)
                     onToDateChange(null)
                 } else {
-                    newToDate = date
-                    onToDateChange(date)
+                    // Check minimum stay validation only when the property defines one
+                    const nights = Math.ceil((date.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+                    const minimumStay = property?.minimumStay;
+                    
+                    if (minimumStay !== undefined && minimumStay !== null && nights < minimumStay) {
+                        // Validation failed - set local error and don't update toDate
+                        setLocalValidationError(`Minimum stay is ${minimumStay} nights. You selected ${nights} night${nights !== 1 ? 's' : ''}.`);
+                        newToDate = null;
+                        // Call onDateChange to clear any existing validation error
+                        if (onDateChange) {
+                            onDateChange(fromDate, null);
+                        }
+                        return; // Don't proceed with the date selection
+                    } else {
+                        // Validation passed - clear local error and proceed with checkout date selection
+                        setLocalValidationError(null);
+                        newToDate = date;
+                        onToDateChange(date);
+                    }
                 }
             }
         }
@@ -307,6 +333,45 @@ export function DateRangePicker({ fromDate, toDate, onFromDateChange, onToDateCh
                     )}
                 </div>
             )}
+            
+            {/* Minimum stay validation - only show when complete invalid range is selected */}
+            {(validationError || localValidationError) && (
+                <div className="mx-6 mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1">
+                            <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="flex-1">
+                                <p className="text-blue-800 font-medium text-xs">Stay Duration Requirement</p>
+                                <p className="text-blue-600 text-xs mt-0.5">{localValidationError || validationError}</p>
+                            </div>
+                        </div>
+                        {fromDate && property?.minimumStay && (
+                            <button
+                                onClick={() => {
+                                    // Calculate the checkout date that meets minimum stay
+                                    const minimumStay = property.minimumStay || 31;
+                                    const checkoutDate = new Date(fromDate.getTime());
+                                    checkoutDate.setDate(checkoutDate.getDate() + minimumStay);
+                                    
+                                    // Clear validation error and set the dates
+                                    setLocalValidationError(null);
+                                    onToDateChange(checkoutDate);
+                                    if (onDateChange) {
+                                        onDateChange(fromDate, checkoutDate);
+                                    }
+                                }}
+                                className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-full transition-colors flex-shrink-0"
+                            >
+                                Select {property.minimumStay} nights
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+            
+                        
             {/* Navigation header */}
             <div className="flex items-center px-6 pt-5 pb-4">
                 <button

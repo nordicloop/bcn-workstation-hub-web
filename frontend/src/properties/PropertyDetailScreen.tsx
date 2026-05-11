@@ -199,8 +199,14 @@ export function PropertyDetailScreen() {
         setFromDate(from);
         setToDate(to);
         
-        const error = validateStayDuration(from, to);
-        setDateValidationError(error);
+        // Only validate when both dates are selected
+        if (from && to) {
+            const error = validateStayDuration(from, to);
+            setDateValidationError(error);
+        } else {
+            // No validation when only check-in is selected or no dates
+            setDateValidationError(null);
+        }
     };
 
     // Close dropdowns when clicking outside
@@ -794,8 +800,10 @@ export function PropertyDetailScreen() {
                             infoPosition="top"
                             onClose={() => setShowCalendarPopup(false)}
                             showCloseButton={true}
+                            property={property}
                         />
-                    </section>
+                        
+                                            </section>
                 </div>
 
                 {/* Sidebar booking card */}
@@ -1029,17 +1037,13 @@ export function PropertyDetailScreen() {
                                             <DateRangePicker
                                                 fromDate={fromDate}
                                                 toDate={toDate}
-                                                onFromDateChange={(date) => {
-                                                    setFromDate(date);
-                                                    // Keep popup open when selecting dates
-                                                    if (date && toDate) {
-                                                        // Both dates selected, could optionally close after a delay
-                                                    }
-                                                }}
-                                                onToDateChange={(date) => {
-                                                    setToDate(date);
-                                                    // Close popup when both dates are selected
-                                                    if (date && fromDate) {
+                                                onFromDateChange={setFromDate}
+                                                onToDateChange={setToDate}
+                                                onDateChange={(from, to) => {
+                                                    const validationError = validateStayDuration(from, to);
+                                                    handleDateChange(from, to);
+                                                    // Only close popup if both dates are selected and there's no validation error
+                                                    if (from && to && !validationError) {
                                                         setShowCalendarPopup(false);
                                                     }
                                                 }}
@@ -1047,6 +1051,7 @@ export function PropertyDetailScreen() {
                                                 infoPosition="top"
                                                 onClose={() => setShowCalendarPopup(false)}
                                                 showCloseButton={true}
+                                                property={property}
                                             />
                                         </div>
                                                                                 </div>

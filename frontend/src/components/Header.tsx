@@ -6,7 +6,7 @@ export function Header() {
             <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between h-20">
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2 group shrink-0">
-                    <img src="/logo.png" className="h-15" />
+                    <img src="/logo.png" className="h-12 object-contain" alt="BCN Workstation Hub" />
                 </Link>
 
                 {/* User menu */}
