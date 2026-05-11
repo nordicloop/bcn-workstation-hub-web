@@ -120,6 +120,7 @@ frontend/.vite/
 backend/node_modules/
 backend/logs/
 backend/uploads/
+backend/functions/lib/
 
 # Config files with secrets
 config/secrets/

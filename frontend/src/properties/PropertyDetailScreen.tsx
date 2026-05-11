@@ -290,6 +290,15 @@ export function PropertyDetailScreen() {
             document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" });
             return;
         }
+        
+        // Check for validation errors (minimum/maximum stay)
+        const validationError = validateStayDuration(fromDate, toDate);
+        if (validationError) {
+            alert(validationError);
+            document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" });
+            return;
+        }
+        
         // Show reservation summary instead of direct email
         setShowReservationSummary(true);
     }
@@ -297,6 +306,13 @@ export function PropertyDetailScreen() {
     async function confirmReservation(guestEmail: string) {
         if (!fromDate || !toDate || !property) {
             alert("Missing required information");
+            return;
+        }
+
+        // Check for validation errors (minimum/maximum stay)
+        const validationError = validateStayDuration(fromDate, toDate);
+        if (validationError) {
+            alert(validationError);
             return;
         }
 

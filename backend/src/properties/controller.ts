@@ -80,6 +80,23 @@ router.post(
         const toDateObj =
             typeof toDate === "string" ? new Date(toDate) : toDate;
 
+        // Server-side validation for minimum and maximum stay
+        const nights = Math.ceil((toDateObj.getTime() - fromDateObj.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (property.minimumStay && nights < property.minimumStay) {
+            response.status(400).json({ 
+                error: `Minimum stay is ${property.minimumStay} nights. You selected ${nights} night${nights !== 1 ? 's' : ''}.` 
+            });
+            return;
+        }
+        
+        if (property.maximumStay && nights > property.maximumStay) {
+            response.status(400).json({ 
+                error: `Maximum stay is ${property.maximumStay} nights. You selected ${nights} nights.` 
+            });
+            return;
+        }
+
         await sendReservationEmails({
             property,
             fromDate: fromDateObj,
