@@ -1040,9 +1040,10 @@ export function PropertyDetailScreen() {
                                                 onFromDateChange={setFromDate}
                                                 onToDateChange={setToDate}
                                                 onDateChange={(from, to) => {
+                                                    const validationError = validateStayDuration(from, to);
                                                     handleDateChange(from, to);
                                                     // Only close popup if both dates are selected and there's no validation error
-                                                    if (from && to && !dateValidationError) {
+                                                    if (from && to && !validationError) {
                                                         setShowCalendarPopup(false);
                                                     }
                                                 }}
