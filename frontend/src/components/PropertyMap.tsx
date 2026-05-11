@@ -10,6 +10,7 @@ declare global {
     interface Window {
         initGoogleMap?: () => void;
         googleMapsError?: () => void;
+        google?: any;
     }
 }
 
@@ -19,9 +20,11 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
     const [loadError, setLoadError] = useState<string>('');
 
     useEffect(() => {
-        if (!mapRef.current || mapInstanceRef.current) return;
+        if (!mapRef.current) return;
 
         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        
+        console.log('🗺️ Google Maps API Key:', apiKey ? 'Present' : 'Missing');
         
         if (!apiKey) {
             setLoadError('Google Maps API key is missing');
@@ -30,7 +33,10 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
 
         const initMap = () => {
             try {
+                console.log('🗺️ Initializing Google Maps...');
+                
                 if (!window.google || !window.google.maps) {
+                    console.error('🗺️ Google Maps API not loaded');
                     setLoadError('Google Maps API not loaded');
                     return;
                 }
@@ -40,7 +46,7 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
                 const latOffset = 0.1 / 111; // ~0.1km south (negative)
                 const lonOffset = (0.1 / 111) / Math.cos(latitude * Math.PI / 180); // ~0.1km east (positive)
                 
-                const map = new google.maps.Map(mapRef.current!, {
+                const map = new window.google.maps.Map(mapRef.current!, {
                     center: { lat: latitude, lng: longitude },
                     zoom: 14,
                     styles: [
@@ -56,7 +62,7 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
                 });
 
                 // Add circle overlay with 0.3km southeast offset
-                new google.maps.Circle({
+                new window.google.maps.Circle({
                     strokeColor: "#FF385C",
                     strokeOpacity: 0.8,
                     strokeWeight: 3,
@@ -72,15 +78,16 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
 
                 mapInstanceRef.current = map;
                 setLoadError('');
+                console.log('✅ Google Maps initialized successfully');
             } catch (error) {
+                console.error('❌ Failed to initialize Google Maps:', error);
                 setLoadError('Failed to initialize Google Maps');
-                console.error('Google Maps initialization error:', error);
             }
         };
 
         // Check if Google Maps API is already loaded
         if (window.google && window.google.maps) {
-            // API already loaded, initialize map directly
+            console.log('🗺️ Google Maps API already loaded');
             initMap();
             return;
         }
@@ -88,6 +95,7 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
         // Check if script is already being loaded
         const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
         if (existingScript) {
+            console.log('🗺️ Google Maps script already loading, waiting...');
             // Script already exists, wait for it to load
             const checkLoaded = setInterval(() => {
                 if (window.google && window.google.maps) {
@@ -95,25 +103,43 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
                     initMap();
                 }
             }, 100);
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkLoaded);
+                if (!window.google || !window.google.maps) {
+                    setLoadError('Google Maps API loading timeout');
+                }
+            }, 10000);
+            
             return;
         }
 
         // Set up global callback function
-        window.initGoogleMap = initMap;
+        window.initGoogleMap = () => {
+            console.log('🗺️ Google Maps callback triggered');
+            initMap();
+        };
 
-        // Load Google Maps API with Promise-based approach
+        // Set up error handler
+        window.googleMapsError = () => {
+            console.error('❌ Google Maps API loading failed');
+            setLoadError('Google Maps API loading failed');
+        };
+
+        // Load Google Maps API
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMap`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMap&error=googleMapsError`;
         script.async = true;
         script.defer = true;
         
-        script.onerror = () => {
+        script.onerror = (error) => {
+            console.error('❌ Failed to load Google Maps script:', error);
             setLoadError('Failed to load Google Maps script');
         };
         
         script.onload = () => {
-            // Script loaded, callback should fire automatically
-            console.log('Google Maps script loaded');
+            console.log('✅ Google Maps script loaded successfully');
         };
         
         document.head.appendChild(script);
@@ -121,6 +147,9 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
         return () => {
             if (window.initGoogleMap) {
                 delete window.initGoogleMap;
+            }
+            if (window.googleMapsError) {
+                delete window.googleMapsError;
             }
         };
     }, [latitude, longitude]);
