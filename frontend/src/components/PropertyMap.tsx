@@ -92,8 +92,8 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
             return;
         }
 
-        // Check if script is already being loaded
-        const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+        // Check if script is already loaded or loading
+        const existingScript = document.querySelector('#google-maps-script');
         if (existingScript) {
             console.log('🗺️ Google Maps script already loading, waiting...');
             // Script already exists, wait for it to load
@@ -116,10 +116,7 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
         }
 
         // Set up global callback function
-        window.initGoogleMap = () => {
-            console.log('🗺️ Google Maps callback triggered');
-            initMap();
-        };
+        window.initGoogleMap = initMap;
 
         // Set up error handler
         window.googleMapsError = () => {
@@ -129,6 +126,7 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
 
         // Load Google Maps API
         const script = document.createElement('script');
+        script.id = 'google-maps-script';
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry&callback=initGoogleMap&error=googleMapsError`;
         script.async = true;
         script.defer = true;
