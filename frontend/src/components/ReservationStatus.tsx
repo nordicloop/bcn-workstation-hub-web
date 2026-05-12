@@ -20,9 +20,9 @@ export function ReservationStatus({ propertyId, fromDate, toDate }: ReservationS
       <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-green-800 mb-1">Reservation Confirmed</h3>
+            <h3 className="font-semibold text-green-800 mb-1">Booking Requested</h3>
             <p className="text-sm text-green-700 mb-1">
-              You have already booked this property for the selected dates.
+              You already requested a booking for this property for the selected dates.
             </p>
             <p className="text-xs text-green-600">
               Confirmation sent to: {reservationInfo.email}
@@ -46,9 +46,9 @@ export function ReservationStatus({ propertyId, fromDate, toDate }: ReservationS
       <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-yellow-800 mb-1">Previous Reservation</h3>
+            <h3 className="font-semibold text-yellow-800 mb-1">Previous Booking</h3>
             <p className="text-sm text-yellow-700 mb-1">
-              You previously booked this property for these dates.
+              You previously requested a booking for this property for these dates.
             </p>
             <p className="text-xs text-yellow-600">
               Previous booking: {new Date(reservationInfo.confirmedAt!).toLocaleDateString()}

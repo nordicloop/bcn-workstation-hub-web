@@ -161,7 +161,22 @@ export function PropertyDetailScreen() {
     const [amenitiesExpanded, setAmenitiesExpanded] = useState(false);
     const [dateValidationError, setDateValidationError] = useState<string | null>(null);
     const [showReservationSummary, setShowReservationSummary] = useState(false);
-
+    const [showSuccessConfirmation, setShowSuccessConfirmation] = useState(false);
+    
+    // Restore dates from cookies when component loads to show booking status
+    useEffect(() => {
+        if (property?.id) {
+            const allReservations = ReservationCookies.getAllReservations();
+            const propertyReservation = allReservations.find(r => r.propertyId === property.id);
+            
+            if (propertyReservation) {
+                // Restore dates from the most recent reservation for this property
+                setFromDate(new Date(propertyReservation.fromDate));
+                setToDate(new Date(propertyReservation.toDate));
+            }
+        }
+    }, [property?.id]);
+    
     // Helper function to check if property has a specific amenity
     const hasAmenity = (amenityName: string) => {
         return property?.amenities.some(section => 
@@ -170,6 +185,36 @@ export function PropertyDetailScreen() {
             )
         );
     };
+
+    // Calculate available days for the next 90 days
+    const calculateAvailableDays = () => {
+        if (!property) return 0;
+        
+        const today = new Date();
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + 90); // Check next 90 days
+        
+        let availableDays = 0;
+        
+        for (let date = new Date(today); date <= endDate; date.setDate(date.getDate() + 1)) {
+            const currentDate = new Date(date);
+            
+            // Check if current date is in any reserved range
+            const isReserved = property.reservedRange?.some(range => {
+                const startDate = new Date(range.from);
+                const endDate = new Date(range.to);
+                return currentDate >= startDate && currentDate <= endDate;
+            });
+            
+            if (!isReserved) {
+                availableDays++;
+            }
+        }
+        
+        return availableDays;
+    };
+
+    const availableDays = calculateAvailableDays();
 
     useEffect(() => {
         if (!id) return;
@@ -291,7 +336,7 @@ export function PropertyDetailScreen() {
               )
             : null;
 
-    function openReservationMail() {
+    function openBookingMail() {
         if (!fromDate || !toDate) {
             document.getElementById("availability")?.scrollIntoView({ behavior: "smooth" });
             return;
@@ -305,11 +350,11 @@ export function PropertyDetailScreen() {
             return;
         }
         
-        // Show reservation summary instead of direct email
+        // Show booking summary instead of direct email
         setShowReservationSummary(true);
     }
 
-    async function confirmReservation(guestEmail: string) {
+    async function confirmBooking(guestEmail: string) {
         if (!fromDate || !toDate || !property) {
             alert("Missing required information");
             return;
@@ -355,7 +400,7 @@ export function PropertyDetailScreen() {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                // Store reservation in cookies to prevent double booking
+                // Store booking in cookies to prevent double booking
                 ReservationCookies.addReservation({
                     propertyId: property.id,
                     fromDate: fromDate.toISOString().split('T')[0],
@@ -363,8 +408,8 @@ export function PropertyDetailScreen() {
                     guestEmail: guestEmail
                 });
                 
-                alert("Booking request sent successfully! Please check your email for next steps.");
                 setShowReservationSummary(false);
+                setShowSuccessConfirmation(true);
             } else {
                 throw new Error(result.error || "Failed to send booking request");
             }
@@ -381,7 +426,7 @@ export function PropertyDetailScreen() {
         }
     }
 
-    function cancelReservation() {
+    function cancelBooking() {
         setShowReservationSummary(false);
     }
 
@@ -633,9 +678,22 @@ export function PropertyDetailScreen() {
 
                     {/* Location section */}
                     <section className="py-8 border-b border-[#EBEBEB]">
-                        <h2 className="font-display text-2xl font-semibold text-[#222222] mb-6">
-                            Location
-                        </h2>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="font-display text-2xl font-semibold text-[#222222]">
+                                Location
+                            </h2>
+                            <a
+                                href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}&z=17&ll=${property.location.latitude},${property.location.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF385C] hover:bg-[#E31E4C] text-white text-sm font-medium rounded-full transition-colors"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                                View larger map
+                            </a>
+                        </div>
                         <div className="space-y-4">
                             <p className="text-[#484848] text-sm">
                                 {property.address}
@@ -780,15 +838,25 @@ export function PropertyDetailScreen() {
 
                     {/* Availability section */}
                     <section className="py-8" id="availability">
-                        <h2 className="font-display text-2xl font-semibold text-[#222222] mb-1">
-                            Availability
-                        </h2>
-                        <p className="text-[#717171] mb-6 text-sm">
-                            {fromDate && toDate
-                                ? `${nightCount} night${nightCount !== 1 ? "s" : ""} selected`
-                                : "Select check-in and check-out dates"}
-                        </p>
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="font-display text-2xl font-semibold text-[#222222] mb-1">
+                                    Availability
+                                </h2>
+                                <p className="text-[#717171] text-sm">
+                                    {fromDate && toDate
+                                        ? `${nightCount} night${nightCount !== 1 ? "s" : ""} selected`
+                                        : "Select check-in and check-out dates"}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-2xl font-bold text-[#222222]">{availableDays}</p>
+                                <p className="text-xs text-[#717171]">days available</p>
+                                <p className="text-xs text-[#717171]">next 90 days</p>
+                            </div>
+                        </div>
 
+                        
                         <DateRangePicker
                             fromDate={fromDate}
                             toDate={toDate}
@@ -1064,7 +1132,7 @@ export function PropertyDetailScreen() {
                             />
 
                             <button
-                                onClick={openReservationMail}
+                                onClick={openBookingMail}
                                 className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors text-[15px] tracking-wide"
                             >
                                 Reserve
@@ -1089,14 +1157,14 @@ export function PropertyDetailScreen() {
                 />
                 
                 <button
-                    onClick={openReservationMail}
+                    onClick={openBookingMail}
                     className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors"
                 >
                     Reserve
                 </button>
             </div>
 
-            {/* Reservation Summary Modal */}
+            {/* Booking Summary Modal */}
             {showReservationSummary && property && (
                 <ReservationSummary
                     property={property}
@@ -1105,9 +1173,57 @@ export function PropertyDetailScreen() {
                     adults={adults}
                     children={children}
                     infants={infants}
-                    onConfirm={confirmReservation}
-                    onCancel={cancelReservation}
+                    onConfirm={confirmBooking}
+                    onCancel={cancelBooking}
                 />
+            )}
+
+            {/* Success Confirmation Card */}
+            {showSuccessConfirmation && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center shadow-2xl">
+                        {/* Success Icon */}
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        
+                        {/* Success Message */}
+                        <h3 className="text-2xl font-bold text-[#222222] mb-3">
+                            Booking Request Sent!
+                        </h3>
+                        <p className="text-[#717171] mb-6 leading-relaxed">
+                            Your booking request has been successfully sent. Please check your email for next steps and confirmation details.
+                        </p>
+                        
+                        {/* Booking Details Summary */}
+                        <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
+                            <div className="mb-3">
+                                <span className="text-sm text-[#717171] block mb-1">Property:</span>
+                                <span className="text-sm font-medium text-[#222222] leading-relaxed">{property?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-[#717171]">Dates:</span>
+                                <span className="text-sm font-medium text-[#222222]">
+                                    {fromDate?.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {toDate?.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-[#717171]">Guests:</span>
+                                <span className="text-sm font-medium text-[#222222]">{adults + children + infants} guests</span>
+                            </div>
+                        </div>
+                        
+                        {/* Action Button */}
+                        <button
+                            onClick={() => setShowSuccessConfirmation(false)}
+                            className="w-full bg-[#222222] text-white rounded-xl py-3 px-6 font-medium hover:bg-[#333333] transition-colors"
+                        >
+                            Got it, thanks!
+                        </button>
+                    </div>
+                </div>
             )}
         </main>
     );
