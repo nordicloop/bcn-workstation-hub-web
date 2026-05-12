@@ -19,6 +19,20 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
     const mapInstanceRef = useRef<google.maps.Map | null>(null);
     const [loadError, setLoadError] = useState<string>('');
 
+    // Generate Google Maps URL with property location and zoom
+    const generateMapUrl = () => {
+        // Calculate the circle center (same as in the map)
+        const latOffset = 0.1 / 111; // ~0.1km south (negative)
+        const lonOffset = (0.1 / 111) / Math.cos(latitude * Math.PI / 180); // ~0.1km east (positive)
+        
+        const circleLat = latitude - latOffset; // Move south
+        const circleLng = longitude + lonOffset; // Move east
+        
+        // Create Google Maps URL that centers on the circle location with higher zoom
+        // Use address as search query and coordinates for precise location
+        return `https://maps.google.com/?q=${encodeURIComponent(address)}&z=17&ll=${circleLat},${circleLng}`;
+    };
+
     useEffect(() => {
         if (!mapRef.current) return;
 
@@ -196,11 +210,14 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
                 <div className="text-center p-4">
                     <p className="text-red-600 text-sm mb-2">{loadError}</p>
                     <a
-                        href={`https://maps.google.com/?q=${address}&z=14`}
+                        href={generateMapUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-[#222222] underline hover:text-[#FF385C] transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF385C] hover:bg-[#E31E4C] text-white text-sm font-medium rounded-full transition-colors"
                     >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
                         View on Google Maps
                     </a>
                 </div>
@@ -215,16 +232,6 @@ export function PropertyMap({ latitude, longitude, address }: PropertyMapProps) 
                 className="w-full h-full rounded-2xl"
                 style={{ borderRadius: '12px' }}
             />
-            <div className="mt-4">
-                <a
-                    href={`https://maps.google.com/?q=${address}&z=14`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-[#222222] underline hover:text-[#FF385C] transition-colors"
-                >
-                    View larger map
-                </a>
-            </div>
         </div>
     );
 }

@@ -133,7 +133,7 @@ export function ReservationSummary({
         <div className="p-5">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-[#222222]">Reservation Summary</h2>
+            <h2 className="text-2xl font-bold text-[#222222]">Booking Request Summary</h2>
             <button
               onClick={onCancel}
               className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
@@ -286,7 +286,7 @@ export function ReservationSummary({
               <p className="text-red-500 text-xs mt-2">{emailError}</p>
             )}
             <p className="text-xs text-[#717171] mt-3">
-              Upon confirmation, you will receive an email containing your booking details and payment instructions for the 10% deposit required to secure your reservation.
+              Upon Request, you will receive an email containing your booking details and payment instructions for the 10% deposit required to secure your booking.
             </p>
           </div>
 
@@ -298,7 +298,7 @@ export function ReservationSummary({
               className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-3 rounded-2xl transition-colors text-[15px] tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!guestEmail.trim()}
             >
-              Confirm Reservation
+              Request Booking
             </button>
           </div>
         </div>
