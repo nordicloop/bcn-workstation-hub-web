@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useLocation } from "react-router";
 import type { Property, NamedList } from "@bcn/core";
 import { getProperty } from "../api-client";
+import { useCurrency } from "../components/CurrencySelector";
 import { 
     Snowflake, 
     Sun, 
@@ -144,9 +145,11 @@ function ImageGallery({
 
 export function PropertyDetailScreen() {
     const { id } = useParams<{ id: string }>();
+    const location = useLocation();
     const [property, setProperty] = useState<Property | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { formatPrice } = useCurrency();
 
     const [galleryOpen, setGalleryOpen] = useState(false);
 
@@ -162,6 +165,24 @@ export function PropertyDetailScreen() {
     const [dateValidationError, setDateValidationError] = useState<string | null>(null);
     const [showReservationSummary, setShowReservationSummary] = useState(false);
     const [showSuccessConfirmation, setShowSuccessConfirmation] = useState(false);
+    
+    // Handle preselected dates and guests from navigation state (when clicking from home screen)
+    useEffect(() => {
+        const state = location.state as { 
+            preselectDates?: { fromDate: Date; toDate: Date };
+            preselectGuests?: { adults: number; children: number; infants: number; pets: number };
+        };
+        if (state?.preselectDates) {
+            setFromDate(state.preselectDates.fromDate);
+            setToDate(state.preselectDates.toDate);
+        }
+        if (state?.preselectGuests) {
+            setAdults(state.preselectGuests.adults);
+            setChildren(state.preselectGuests.children);
+            setInfants(state.preselectGuests.infants);
+            setPets(state.preselectGuests.pets);
+        }
+    }, [location.state]);
     
     // Restore dates from cookies when component loads to show booking status
     useEffect(() => {
@@ -882,10 +903,10 @@ export function PropertyDetailScreen() {
                                 {fromDate && toDate ? (
                                     <div>
                                         <p className="text-3xl font-bold text-[#222222] font-display">
-                                            ${property.pricePerNight ? property.pricePerNight * Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                                            {property.pricePerNight ? formatPrice(property.pricePerNight * Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24))) : formatPrice(0)}
                                         </p>
                                         <p className="text-sm text-[#717171] mt-1">
-                                            ${property.pricePerNight || 0} × {Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24))} nights
+                                            {formatPrice(property.pricePerNight || 0)} × {Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24))} nights
                                         </p>
                                     </div>
                                 ) : (
@@ -1129,13 +1150,20 @@ export function PropertyDetailScreen() {
                                 propertyId={property.id}
                                 fromDate={fromDate}
                                 toDate={toDate}
+                                onCancel={() => {
+                                    // Refresh the component state when booking is cancelled
+                                    setShowReservationSummary(false);
+                                    // Force a re-render by updating the state
+                                    setFromDate(fromDate);
+                                    setToDate(toDate);
+                                }}
                             />
 
                             <button
                                 onClick={openBookingMail}
                                 className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors text-[15px] tracking-wide"
                             >
-                                Reserve
+                                Request Booking
                             </button>
 
                             <p className="text-center text-sm text-[#717171] mt-3">
@@ -1154,13 +1182,20 @@ export function PropertyDetailScreen() {
                     propertyId={property.id}
                     fromDate={fromDate}
                     toDate={toDate}
+                    onCancel={() => {
+                        // Refresh the component state when booking is cancelled
+                        setShowReservationSummary(false);
+                        // Force a re-render by updating the state
+                        setFromDate(fromDate);
+                        setToDate(toDate);
+                    }}
                 />
                 
                 <button
                     onClick={openBookingMail}
                     className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 rounded-2xl transition-colors"
                 >
-                    Reserve
+                    Request Booking
                 </button>
             </div>
 

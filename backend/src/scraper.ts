@@ -72,7 +72,14 @@ const crawler = new PlaywrightCrawler({
         );
 
         const { icalUrl } = request.userData as { icalUrl?: string };
-        const reservedRange = icalUrl ? await fetchReservedDates(icalUrl) : [];
+        let reservedRange: DateRange[] = [];
+        let timezone: string | undefined;
+        
+        if (icalUrl) {
+            const icalData = await fetchReservedDates(icalUrl);
+            reservedRange = icalData.dates;
+            timezone = icalData.timezone;
+        }
 
         // Extract minimum stay from Airbnb data
         const stayParams = niobe.presentation?.stayProductDetailPage?.sections?.metadata?.loggingContext?.eventDataLogging?.stay_params;
@@ -156,6 +163,7 @@ const crawler = new PlaywrightCrawler({
             minimumStay,
             maximumStay,
             pricePerNight,
+            timezone,
         };
 
         await createProperty(room);
