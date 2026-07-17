@@ -120,6 +120,7 @@ export function PropertyBookingCard({ property, className = "", formatPrice }: P
             src={property.images[0].items[0]} 
             alt={property.name}
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         )}
         <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">

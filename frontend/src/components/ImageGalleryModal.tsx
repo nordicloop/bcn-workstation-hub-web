@@ -100,6 +100,7 @@ export function ImageGalleryModal({ images, name, onClose }: Props) {
                                                 src={url}
                                                 alt={`${section.title || name} ${i + 1}`}
                                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                                referrerPolicy="no-referrer"
                                             />
                                         </button>
                                     ))}
@@ -136,6 +137,7 @@ export function ImageGalleryModal({ images, name, onClose }: Props) {
                         src={lastSelected.current}
                         alt={name}
                         className="max-w-full max-h-full object-contain rounded-2xl"
+                        referrerPolicy="no-referrer"
                     />
                 </div>
             </div>

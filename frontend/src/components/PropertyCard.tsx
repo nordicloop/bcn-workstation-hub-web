@@ -21,6 +21,7 @@ export function PropertyCard({ property }: Props) {
                         alt={property.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                     />
                 ) : (
                     <div className="w-full h-full bg-linear-to-br from-rose-100 via-pink-100 to-orange-100 flex items-center justify-center">
