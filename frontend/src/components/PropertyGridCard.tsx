@@ -63,6 +63,7 @@ export function PropertyGridCard({ property, className = "", availabilityResult,
               src={property.images[0].items[0]} 
               alt={property.name}
               className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
             />
           )}
         </div>

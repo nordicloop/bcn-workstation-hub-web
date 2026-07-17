@@ -110,6 +110,7 @@ function ImageGallery({
                     src={images[0]}
                     alt={name}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
                 />
             </div>
             {/* Right grid — up to 4 thumbnails, last one has "view all" overlay */}
@@ -122,6 +123,7 @@ function ImageGallery({
                                 src={images[i]}
                                 alt={`${name} ${i + 1}`}
                                 className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
                             />
                         ) : (
                             <div className="w-full h-full bg-linear-to-br from-rose-50 to-pink-100" />
