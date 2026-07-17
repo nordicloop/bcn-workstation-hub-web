@@ -15,6 +15,7 @@ export type Property = {
     minimumStay?: number;
     maximumStay?: number;
     pricePerNight?: number;
+    timezone?: string; // Timezone from iCal data (e.g., "Europe/Madrid")
 };
 
 export type NamedList = {
