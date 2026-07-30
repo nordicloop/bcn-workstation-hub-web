@@ -19,7 +19,8 @@ export function ImageGalleryModal({ images, name, onClose }: Props) {
     const lastSelected = useRef<string | undefined>(undefined);
     if (selected !== null) lastSelected.current = selected;
 
-    const sections = images.filter((s) => s.title !== "Featured");
+    const nonFeatured = images.filter((s) => s.title !== "Featured");
+    const sections = nonFeatured.length > 0 ? nonFeatured : images;
     const isFullscreen = selected !== null;
 
     useEffect(() => {
