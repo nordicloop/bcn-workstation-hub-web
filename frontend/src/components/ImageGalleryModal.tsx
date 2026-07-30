@@ -5,6 +5,7 @@ type Props = {
     images: NamedList[];
     name: string;
     onClose: () => void;
+    initialImage?: string | null;
 };
 
 function imageSpan(i: number): string {
@@ -13,24 +14,39 @@ function imageSpan(i: number): string {
     return "";
 }
 
-export function ImageGalleryModal({ images, name, onClose }: Props) {
-    const [selected, setSelected] = useState<string | null>(null);
+export function ImageGalleryModal({ images, name, onClose, initialImage }: Props) {
+    const [selected, setSelected] = useState<string | null>(initialImage ?? null);
     // Retain the last selected URL so the fullscreen img doesn't blank out on close transition
     const lastSelected = useRef<string | undefined>(undefined);
     if (selected !== null) lastSelected.current = selected;
 
-    const sections = images.filter((s) => s.title !== "Featured");
+    const nonFeatured = images.filter((s) => s.title !== "Featured");
+    const sections = nonFeatured.length > 0 ? nonFeatured : images;
+    const allUrls = sections.flatMap((s) => s.items);
+    const selectedIndex = selected !== null ? allUrls.indexOf(selected) : -1;
     const isFullscreen = selected !== null;
+
+    const goNext = () => {
+        if (selectedIndex < allUrls.length - 1) setSelected(allUrls[selectedIndex + 1]);
+    };
+    const goPrev = () => {
+        if (selectedIndex > 0) setSelected(allUrls[selectedIndex - 1]);
+    };
 
     useEffect(() => {
         function onKey(e: KeyboardEvent) {
-            if (e.key !== "Escape") return;
-            if (selected !== null) setSelected(null);
-            else onClose();
+            if (e.key === "Escape") {
+                if (selected !== null) setSelected(null);
+                else onClose();
+            } else if (selected !== null && e.key === "ArrowRight") {
+                goNext();
+            } else if (selected !== null && e.key === "ArrowLeft") {
+                goPrev();
+            }
         }
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [selected, onClose]);
+    }, [selected, onClose, selectedIndex]);
 
     useEffect(() => {
         document.body.style.overflow = "hidden";
@@ -115,7 +131,7 @@ export function ImageGalleryModal({ images, name, onClose }: Props) {
             <div
                 className={`absolute inset-0 flex flex-col transition-opacity duration-200 ${isFullscreen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
             >
-                <div className="flex items-center px-8 py-5 border-b border-[#EBEBEB] shrink-0">
+                <div className="flex items-center justify-between px-8 py-5 border-b border-[#EBEBEB] shrink-0">
                     <button
                         onClick={() => setSelected(null)}
                         className="flex items-center gap-2 text-sm font-semibold text-[#222222] hover:text-[#FF385C] transition-colors"
@@ -131,14 +147,39 @@ export function ImageGalleryModal({ images, name, onClose }: Props) {
                         </svg>
                         Back
                     </button>
+                    <span className="text-sm text-[#717171]">
+                        {selectedIndex + 1} / {allUrls.length}
+                    </span>
                 </div>
-                <div className="flex-1 flex items-center justify-center overflow-hidden p-8">
+                <div className="flex-1 flex items-center justify-center overflow-hidden p-8 relative">
+                    {selectedIndex > 0 && (
+                        <button
+                            onClick={goPrev}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg hover:scale-105 transition-all z-10"
+                            aria-label="Previous image"
+                        >
+                            <svg className="w-5 h-5 text-[#222222]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+                    )}
                     <img
                         src={lastSelected.current}
                         alt={name}
                         className="max-w-full max-h-full object-contain rounded-2xl"
                         referrerPolicy="no-referrer"
                     />
+                    {selectedIndex < allUrls.length - 1 && (
+                        <button
+                            onClick={goNext}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg hover:scale-105 transition-all z-10"
+                            aria-label="Next image"
+                        >
+                            <svg className="w-5 h-5 text-[#222222]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
