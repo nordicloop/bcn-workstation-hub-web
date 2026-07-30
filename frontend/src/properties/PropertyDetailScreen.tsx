@@ -86,7 +86,7 @@ function ImageGallery({
 }: {
     images: string[];
     name: string;
-    onShowAll: () => void;
+    onShowAll: (imageUrl?: string | null) => void;
 }) {
     if (images.length === 0) {
         return (
@@ -105,19 +105,19 @@ function ImageGallery({
     return (
         <div className="grid grid-cols-4 grid-rows-2 gap-2 h-120 rounded-3xl overflow-hidden mb-8">
             {/* Main large image */}
-            <div className="col-span-2 row-span-2">
+            <button className="col-span-2 row-span-2 cursor-pointer" onClick={() => onShowAll(images[0])}>
                 <img
                     src={images[0]}
                     alt={name}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                 />
-            </div>
+            </button>
             {/* Right grid — up to 4 thumbnails, last one has "view all" overlay */}
             {[1, 2, 3, 4].map((i) => {
                 const isLast = i === 4;
                 return (
-                    <div key={i} className="relative overflow-hidden">
+                    <button key={i} className="relative overflow-hidden cursor-pointer" onClick={() => onShowAll(isLast ? null : images[i])}>
                         {images[i] ? (
                             <img
                                 src={images[i]}
@@ -129,16 +129,15 @@ function ImageGallery({
                             <div className="w-full h-full bg-linear-to-br from-rose-50 to-pink-100" />
                         )}
                         {isLast && (
-                            <button
-                                onClick={onShowAll}
+                            <div
                                 className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/55 transition-colors"
                             >
                                 <span className="bg-white text-[#222222] text-sm font-semibold px-4 py-2 rounded-full shadow-md">
                                     View all photos
                                 </span>
-                            </button>
+                            </div>
                         )}
-                    </div>
+                    </button>
                 );
             })}
         </div>
@@ -154,6 +153,7 @@ export function PropertyDetailScreen() {
     const { formatPrice } = useCurrency();
 
     const [galleryOpen, setGalleryOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const [fromDate, setFromDate] = useState<Date | null>(null);
     const [toDate, setToDate] = useState<Date | null>(null);
@@ -500,13 +500,14 @@ export function PropertyDetailScreen() {
             <ImageGallery
                 images={allImages}
                 name={property.name}
-                onShowAll={() => setGalleryOpen(true)}
+                onShowAll={(imageUrl) => { setSelectedImage(imageUrl ?? null); setGalleryOpen(true); }}
             />
             {galleryOpen && (
                 <ImageGalleryModal
                     images={property.images}
                     name={property.name}
-                    onClose={() => setGalleryOpen(false)}
+                    onClose={() => { setGalleryOpen(false); setSelectedImage(null); }}
+                    initialImage={selectedImage}
                 />
             )}
 

@@ -5,6 +5,7 @@ type Props = {
     images: NamedList[];
     name: string;
     onClose: () => void;
+    initialImage?: string | null;
 };
 
 function imageSpan(i: number): string {
@@ -13,8 +14,8 @@ function imageSpan(i: number): string {
     return "";
 }
 
-export function ImageGalleryModal({ images, name, onClose }: Props) {
-    const [selected, setSelected] = useState<string | null>(null);
+export function ImageGalleryModal({ images, name, onClose, initialImage }: Props) {
+    const [selected, setSelected] = useState<string | null>(initialImage ?? null);
     // Retain the last selected URL so the fullscreen img doesn't blank out on close transition
     const lastSelected = useRef<string | undefined>(undefined);
     if (selected !== null) lastSelected.current = selected;
