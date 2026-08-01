@@ -278,10 +278,49 @@ const COMPETITORS: Competitor[] = [
     { id: "37254201", name: "Family house near Barcelona and the sea", url: "https://www.airbnb.com/rooms/37254201", lat: 41.5518, lng: 2.3977, details: "3 bedrooms, 4 beds, 1 bath", badge: "Superhost", rating: "4.8 (88)", monthlyPrice: 3760, originalPrice: 4850, period: "Sep" },
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function CompetitionSection({ properties }: { properties: Property[] }) {
     const [sortBy, setSortBy] = useState<"distance" | "price">("distance");
+    const [competitors, setCompetitors] = useState<Competitor[]>(COMPETITORS);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<string>("Aug 2026 (static)");
 
-    const enriched = COMPETITORS.map(c => ({
+    async function refreshCompetition() {
+        setRefreshing(true);
+        try {
+            const now = new Date();
+            const month1Start = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            const month1End = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+            const month2Start = month1End;
+            const month2End = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+
+            const toYMD = (d: Date) => d.toISOString().split("T")[0];
+
+            const [res1, res2] = await Promise.all([
+                fetch(`${API_BASE_URL}/competition?checkin=${toYMD(month1Start)}&checkout=${toYMD(month1End)}`),
+                fetch(`${API_BASE_URL}/competition?checkin=${toYMD(month2Start)}&checkout=${toYMD(month2End)}`),
+            ]);
+
+            const data1: Competitor[] = res1.ok ? await res1.json() : [];
+            const data2: Competitor[] = res2.ok ? await res2.json() : [];
+            const merged = [...data1, ...data2];
+
+            if (merged.length > 0) {
+                setCompetitors(merged);
+                setLastUpdated(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}`);
+            } else {
+                setLastUpdated(`Refresh returned no results – showing cached data`);
+            }
+        } catch (e) {
+            console.error("Competition refresh failed:", e);
+            setLastUpdated(`Refresh failed – showing cached data`);
+        } finally {
+            setRefreshing(false);
+        }
+    }
+
+    const enriched = competitors.map(c => ({
         ...c,
         distance: haversineKm(MY_LAT, MY_LNG, c.lat, c.lng),
     })).sort((a, b) => sortBy === "distance" ? a.distance - b.distance : a.monthlyPrice - b.monthlyPrice);
@@ -299,9 +338,20 @@ function CompetitionSection({ properties }: { properties: Property[] }) {
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h2 className="text-xl font-bold text-gray-900">Competition nearby</h2>
-                    <p className="text-sm text-gray-500 mt-0.5">Monthly stays available Aug–Sep 2026 near Premià de Mar</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Monthly stays near Premià de Mar</p>
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={refreshCompetition}
+                        disabled={refreshing}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+                    >
+                        <svg className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+                            <polyline points="21 3 21 9 15 9" />
+                        </svg>
+                        {refreshing ? "Refreshing…" : "Refresh"}
+                    </button>
                     <button
                         onClick={() => setSortBy("distance")}
                         className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${sortBy === "distance" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
@@ -373,7 +423,7 @@ function CompetitionSection({ properties }: { properties: Property[] }) {
             </div>
 
             <p className="text-xs text-gray-400 mt-3 text-right">
-                Data from Airbnb search · Last updated Aug 2026 · Prices include guest service fees
+                Data from Airbnb search · Last updated: {lastUpdated} · Prices include guest service fees
             </p>
         </div>
     );
