@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import { PropertiesListScreen } from './properties/PropertiesListScreen'
 import { PropertyDetailScreen } from './properties/PropertyDetailScreen'
 import { BookingPage } from './pages/BookingPage'
+import { HostDashboard } from './pages/HostDashboard'
 import { Header } from './components/Header'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
                     path="/properties/:id"
                     element={<PropertyDetailScreen />}
                 />
+                <Route path="/host-dashboard" element={<HostDashboard />} />
             </Routes>
         </BrowserRouter>
     )

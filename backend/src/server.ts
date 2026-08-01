@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import propertiesController from "./properties/controller";
+import competitionController from "./competition/controller";
 
 const server = express();
 
@@ -15,6 +16,7 @@ server.get("/health", (_req, res) => {
 });
 
 server.use("/", propertiesController);
+server.use("/", competitionController);
 
 server.get("//health", (_, res) => {
     res.json({
