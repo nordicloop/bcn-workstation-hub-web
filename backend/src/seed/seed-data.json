@@ -9,7 +9,7 @@
       "longitude": 2.35008
     },
     "host": "Cynthia",
-    "pricePerNight": 85,
+    "pricePerNight": 60,
     "minimumStay": 31,
     "maximumStay": 335,
     "amenities": [
@@ -179,7 +179,7 @@
       "longitude": 2.35084
     },
     "host": "Cynthia",
-    "pricePerNight": 95,
+    "pricePerNight": 72,
     "minimumStay": 31,
     "maximumStay": 335,
     "amenities": [
@@ -340,7 +340,7 @@
       "longitude": 2.35159
     },
     "host": "Cynthia",
-    "pricePerNight": 75,
+    "pricePerNight": 65,
     "minimumStay": 31,
     "maximumStay": 335,
     "amenities": [

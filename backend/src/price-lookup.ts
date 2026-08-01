@@ -13,23 +13,23 @@ interface PropertyPrice {
 export const PROPERTY_PRICES: PropertyPrice[] = [
   {
     listingId: "851289997009741371",
-    pricePerNight: 85,
-    currency: "USD",
-    lastUpdated: "2026-05-09",
+    pricePerNight: 60,
+    currency: "EUR",
+    lastUpdated: "2026-08-02",
     source: "airbnb"
   },
   {
     listingId: "1663074583509006957", 
-    pricePerNight: 95,
-    currency: "USD",
-    lastUpdated: "2026-05-09",
+    pricePerNight: 72,
+    currency: "EUR",
+    lastUpdated: "2026-08-02",
     source: "airbnb"
   },
   {
     listingId: "1043429957458843360",
-    pricePerNight: 75,
-    currency: "USD",
-    lastUpdated: "2026-05-09", 
+    pricePerNight: 65,
+    currency: "EUR",
+    lastUpdated: "2026-08-02", 
     source: "airbnb"
   }
 ];

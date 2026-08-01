@@ -135,7 +135,7 @@ function Divider() {
 }
 
 function PriceCalculator() {
-    const [nightlyPrice, setNightlyPrice] = useState(85);
+    const [nightlyPrice, setNightlyPrice] = useState(65);
     const [nights, setNights] = useState(31);
     const [cleaningFee, setCleaningFee] = useState(50);
     const [guestFeeRate, setGuestFeeRate] = useState(14.71);
