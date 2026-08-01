@@ -6,6 +6,7 @@ import { getProperties } from "../api-client";
 const AIRBNB_GUEST_FEE_RATE = 0.1471; // ~14.71% service fee charged to guests
 const AIRBNB_HOST_FEE_RATE = 0.03;    // 3% host service fee
 const CLEANING_FEE = 50;              // EUR flat cleaning fee
+const MONTHLY_DISCOUNT_RATE = 0.10;   // 10% monthly stay discount applied by Airbnb
 
 interface PropertyBreakdown {
     property: Property;
@@ -20,6 +21,8 @@ interface PropertyBreakdown {
         guestPays: number;
         airbnbGuestFee: number;
         listingPrice: number;
+        monthlyDiscount: number;
+        discountedListing: number;
         airbnbHostFee: number;
         hostReceives: number;
         cleaningFee: number;
@@ -36,12 +39,14 @@ function calcBreakdown(property: Property): PropertyBreakdown {
     const dailyHostFee = nightlyPrice * AIRBNB_HOST_FEE_RATE;
     const dailyHostReceives = nightlyPrice - dailyHostFee;
 
-    // Monthly (min stay)
+    // Monthly (min stay) — with 10% monthly discount
     const monthlyListing = nightlyPrice * minStay;
-    const monthlyGuestFee = monthlyListing * AIRBNB_GUEST_FEE_RATE;
-    const monthlyGuestPays = monthlyListing + monthlyGuestFee + CLEANING_FEE;
-    const monthlyHostFee = monthlyListing * AIRBNB_HOST_FEE_RATE;
-    const monthlyHostReceives = monthlyListing - monthlyHostFee;
+    const monthlyDiscount = monthlyListing * MONTHLY_DISCOUNT_RATE;
+    const discountedListing = monthlyListing - monthlyDiscount;
+    const monthlyGuestFee = discountedListing * AIRBNB_GUEST_FEE_RATE;
+    const monthlyGuestPays = discountedListing + monthlyGuestFee + CLEANING_FEE;
+    const monthlyHostFee = discountedListing * AIRBNB_HOST_FEE_RATE;
+    const monthlyHostReceives = discountedListing - monthlyHostFee;
 
     return {
         property,
@@ -56,6 +61,8 @@ function calcBreakdown(property: Property): PropertyBreakdown {
             guestPays: monthlyGuestPays,
             airbnbGuestFee: monthlyGuestFee,
             listingPrice: monthlyListing,
+            monthlyDiscount,
+            discountedListing,
             airbnbHostFee: monthlyHostFee,
             hostReceives: monthlyHostReceives,
             cleaningFee: CLEANING_FEE,
@@ -98,12 +105,14 @@ function BreakdownCard({ data }: { data: PropertyBreakdown }) {
                 <div className="p-5 space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Monthly ({minStay} nights)</h4>
                     <Row label={`${fmt(daily.listingPrice)} × ${minStay} nights`} value={fmt(monthly.listingPrice)} />
+                    <Row label="Monthly discount (10%)" value={`-${fmt(monthly.monthlyDiscount)}`} className="text-green-500" />
                     <Row label="Airbnb guest fee (14.7%)" value={`+${fmt(monthly.airbnbGuestFee)}`} className="text-red-500" />
                     <Row label="Cleaning fee" value={`+${fmt(monthly.cleaningFee)}`} className="text-orange-500" />
                     <Divider />
                     <Row label="Guest pays total" value={fmt(monthly.guestPays)} bold className="text-gray-900" />
                     <div className="pt-2" />
                     <Row label={`${fmt(daily.listingPrice)} × ${minStay} nights`} value={fmt(monthly.listingPrice)} />
+                    <Row label="Monthly discount (10%)" value={`-${fmt(monthly.monthlyDiscount)}`} className="text-green-500" />
                     <Row label="Airbnb host fee (3%)" value={`-${fmt(monthly.airbnbHostFee)}`} className="text-red-500" />
                     <Divider />
                     <Row label="Host receives" value={fmt(monthly.hostReceives)} bold className="text-emerald-600" />
@@ -138,19 +147,23 @@ function PriceCalculator() {
     const [nightlyPrice, setNightlyPrice] = useState(65);
     const [nights, setNights] = useState(31);
     const [cleaningFee, setCleaningFee] = useState(50);
+    const [monthlyDiscountRate, setMonthlyDiscountRate] = useState(10);
     const [guestFeeRate, setGuestFeeRate] = useState(14.71);
     const [hostFeeRate, setHostFeeRate] = useState(3);
 
+    const discountRate = monthlyDiscountRate / 100;
     const guestRate = guestFeeRate / 100;
     const hostRate = hostFeeRate / 100;
 
     const subtotal = nightlyPrice * nights;
-    const guestFee = subtotal * guestRate;
-    const guestTotal = subtotal + guestFee + cleaningFee;
-    const hostFee = subtotal * hostRate;
-    const hostTotal = subtotal - hostFee;
+    const discount = subtotal * discountRate;
+    const discounted = subtotal - discount;
+    const guestFee = discounted * guestRate;
+    const guestTotal = discounted + guestFee + cleaningFee;
+    const hostFee = discounted * hostRate;
+    const hostTotal = discounted - hostFee;
     const airbnbTotal = guestFee + hostFee;
-    const airbnbPct = subtotal > 0 ? ((airbnbTotal / subtotal) * 100).toFixed(1) : "0";
+    const airbnbPct = discounted > 0 ? ((airbnbTotal / discounted) * 100).toFixed(1) : "0";
 
     return (
         <div className="mt-12 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -161,9 +174,10 @@ function PriceCalculator() {
 
             <div className="p-6">
                 {/* Inputs */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
                     <CalcInput label="Nightly price (€)" value={nightlyPrice} onChange={setNightlyPrice} min={0} step={5} />
                     <CalcInput label="Number of nights" value={nights} onChange={setNights} min={1} step={1} />
+                    <CalcInput label="Monthly discount (%)" value={monthlyDiscountRate} onChange={setMonthlyDiscountRate} min={0} max={50} step={1} />
                     <CalcInput label="Cleaning fee (€)" value={cleaningFee} onChange={setCleaningFee} min={0} step={5} />
                     <CalcInput label="Guest fee (%)" value={guestFeeRate} onChange={setGuestFeeRate} min={0} max={50} step={0.1} />
                     <CalcInput label="Host fee (%)" value={hostFeeRate} onChange={setHostFeeRate} min={0} max={50} step={0.1} />
@@ -175,6 +189,7 @@ function PriceCalculator() {
                     <div className="bg-gray-50 rounded-xl p-5 space-y-3">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Guest pays</h4>
                         <Row label={`€${nightlyPrice.toFixed(2)} × ${nights} nights`} value={fmt(subtotal)} />
+                        <Row label={`Monthly discount (${monthlyDiscountRate}%)`} value={`-${fmt(discount)}`} className="text-green-500" />
                         <Row label={`Guest service fee (${guestFeeRate}%)`} value={`+${fmt(guestFee)}`} className="text-red-500" />
                         <Row label="Cleaning fee" value={`+${fmt(cleaningFee)}`} className="text-orange-500" />
                         <Divider />
@@ -188,6 +203,7 @@ function PriceCalculator() {
                     <div className="bg-emerald-50 rounded-xl p-5 space-y-3">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600">Host receives</h4>
                         <Row label={`€${nightlyPrice.toFixed(2)} × ${nights} nights`} value={fmt(subtotal)} />
+                        <Row label={`Monthly discount (${monthlyDiscountRate}%)`} value={`-${fmt(discount)}`} className="text-green-500" />
                         <Row label={`Host service fee (${hostFeeRate}%)`} value={`-${fmt(hostFee)}`} className="text-red-500" />
                         <Divider />
                         <Row label="Total" value={fmt(hostTotal)} bold className="text-emerald-700" />
@@ -325,12 +341,13 @@ function CompetitionSection({ properties }: { properties: Property[] }) {
         distance: haversineKm(MY_LAT, MY_LNG, c.lat, c.lng),
     })).sort((a, b) => sortBy === "distance" ? a.distance - b.distance : a.monthlyPrice - b.monthlyPrice);
 
-    // Your avg monthly price for comparison
+    // Your avg monthly price for comparison (with 10% discount)
     const myAvgMonthly = properties.reduce((s, p) => {
         const nights = p.minimumStay || 31;
         const subtotal = (p.pricePerNight || 0) * nights;
-        const guestFee = subtotal * AIRBNB_GUEST_FEE_RATE;
-        return s + subtotal + guestFee + CLEANING_FEE;
+        const discounted = subtotal * (1 - MONTHLY_DISCOUNT_RATE);
+        const guestFee = discounted * AIRBNB_GUEST_FEE_RATE;
+        return s + discounted + guestFee + CLEANING_FEE;
     }, 0) / (properties.length || 1);
 
     return (
